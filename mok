@@ -1,27 +1,119 @@
-# Python 3 server example
-import sys, getopt
+#!/usr/bin/python3
+
+import os, sys, getopt
 import time
+import subprocess
+import shutil
+import signal
+
+
+
+
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+os.chdir(dname)
 
 sys.path.insert(0, './lib')
 
-import mok_webserver
-from http.server import BaseHTTPRequestHandler, HTTPServer
+
+def sighandler(signum, frame):
+   removepidfile()
+   sys.exit()
+
+signal.signal(signal.SIGINT, sighandler)
+
+
+import mok_path as p
+import mok_install
+import mok_vars as v
+import mok_ipc as ipc
+
+p.setup(__file__)
+
+v.wd = dname
+v.venv = False
+
+def writepid():
+   f = open(".pid", "w")
+   f.write(str(os.getpid()))
+   f.close()
+
+def killpid():
+   try:
+      f = open(".pid", "r")
+      os.kill(int(f.read()), signal.SIGKILL)
+      removepidfile()
+      return True
+   except:
+      return False
+   
+def removepidfile():
+   try:
+      os.remove('.pid')
+   except:
+      pass         
 
 def main(argv):
-   mok_webserver.run()
-   inputfile = ''
-   outputfile = ''
-   opts, args = getopt.getopt(argv,"hi:o:",["ifile=","ofile="])
+   options = {}
+   opts, args = getopt.getopt(argv,"mbxhig:vse:r",["backgroun", "run","install","git=","verbose","script","start","stop"])
    for opt, arg in opts:
       if opt == '-h':
-         print ('test.py -i <inputfile> -o <outputfile>')
+         print ('mok -i --install      Install all required dependencies')
+         print ('mok -r --run          Run in console')
+         print ('mok -b --background   Run in background')
+         print ('mok -s --stop         Stop')
+
+         print ('mok -g --git <REPO>   Install a github repository')
+         print ('mok -v --verbose      Verbose mode')
+         print ('mok -s --script <SCRIPT>     Execute script')
+         print ('mok -x Virtual environment')
+         print ('mok -r <repository> Repository')
+         print ('mok -e <executable> Repository Executable file')
+         print ('mok -c Cleanup')
+         print ('mok -n <name> name')
          sys.exit()
-      elif opt in ("-i", "--ifile"):
-         inputfile = arg
-      elif opt in ("-o", "--ofile"):
-         outputfile = arg
-   print ('Input file is ', inputfile)
-   print ('Output file is ', outputfile)
+      elif opt in ("-i", "--install"):
+         mok_install.install()
+         sys.exit()
+      elif opt in ("-b", "--background"):
+         if killpid():
+            print("Previous instance closed. Restarting.")
+         cmd = "nohup "+sys.executable+" "+v.paths.script+" -r > /dev/null &"
+         os.system(cmd)
+         sys.exit()
+      elif opt in ("-s", "--stop"):
+         if killpid():
+            print("Mok successfully closed.")
+         else:
+            print("Mok was not running")
+         sys.exit()
+      elif opt in ("-r", "--run"):
+         killpid()
+         writepid()
+         ipc.listen()
+         sys.exit()
+
+      elif opt == '-x':
+         options['venv'] = True
+         v.venv = True
+      elif opt == '-e':
+         options['executable'] = arg
+         v.executable = arg
+      elif opt == '-r':
+         options['repository'] = arg
+         v.repository = arg
+      elif opt in ("-v", "--verbose"):
+         v.opt_verbose = True
+      elif opt in ("-g", "--git"):
+         print(arg)
+         sys.exit()
+   if len(opts) == 0:
+      print("No parameters. Use -h")
+   else:
+      try:
+         ipc.send(options)
+      except Exception as error:
+         print("An error occured. Run -i to install dependecies.", error)
 
 
 if __name__ == "__main__":        
