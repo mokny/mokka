@@ -1,4 +1,12 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
+import signal
+import sys
+
+def sighandler(signum, frame):
+   sys.exit()
+
+signal.signal(signal.SIGINT, sighandler)
+
 hostName = "localhost"
 serverPort = 8080
 
@@ -15,7 +23,7 @@ class MyServer(BaseHTTPRequestHandler):
         self.wfile.write(bytes("</body></html>", "utf-8"))
 
 
-def run():
+def run(port):
     webServer = HTTPServer((hostName, serverPort), MyServer)
 
 
@@ -23,6 +31,7 @@ def run():
         webServer.serve_forever()
     except KeyboardInterrupt:
         pass
+ 
 
     webServer.server_close()
     print("Server stopped.")    

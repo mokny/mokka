@@ -5,9 +5,10 @@ import time
 import subprocess
 import shutil
 import signal
+import logging
+import threading
 
-
-
+logging.basicConfig(level=logging.INFO)
 
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
@@ -30,8 +31,13 @@ import mok_ipc as ipc
 
 p.setup(__file__)
 
+if not os.access(v.paths.base, os.W_OK):
+   logging.error('MOK requires write permissions in the current folder ('+v.paths.base+')')
+   sys.exit()
+
 v.wd = dname
 v.venv = False
+v.httpserver = False
 
 def writepid():
    f = open(".pid", "w")
@@ -51,35 +57,47 @@ def removepidfile():
    try:
       os.remove('.pid')
    except:
+      pass
+   try:
+      os.remove('.ipcport')
+   except:
       pass         
 
 def main(argv):
+   ishost = False
    options = {}
-   opts, args = getopt.getopt(argv,"mbxhig:vse:r",["backgroun", "run","install","git=","verbose","script","start","stop"])
+   opts, args = getopt.getopt(argv,"mwbxhig:vse:r",["web", "background", "run","install","git=","verbose","script","start","stop"])
    for opt, arg in opts:
       if opt == '-h':
-         print ('mok -i --install      Install all required dependencies')
-         print ('mok -r --run          Run in console')
-         print ('mok -b --background   Run in background')
-         print ('mok -s --stop         Stop')
-
-         print ('mok -g --git <REPO>   Install a github repository')
-         print ('mok -v --verbose      Verbose mode')
-         print ('mok -s --script <SCRIPT>     Execute script')
-         print ('mok -x Virtual environment')
-         print ('mok -r <repository> Repository')
-         print ('mok -e <executable> Repository Executable file')
-         print ('mok -c Cleanup')
-         print ('mok -n <name> name')
+         print ('Running the MOK Host')
+         print (' mok -i --install      Install all required dependencies')
+         print (' mok -r --run          Run in console')
+         print (' mok -b --background   Run in background (headless)')
+         print (' mok -s --stop         Stop host')
+         print ('Launching containers')
+         print (' mok -g --git <REPO>   Install a github repository')
+         print (' mok -v --verbose      Verbose mode')
+         print (' mok -s --script <SCRIPT>     Execute script')
+         print (' mok -x Virtual environment')
+         print (' mok -r <repository> Repository')
+         print (' mok -e <executable> Repository Executable file')
+         print (' mok -c Cleanup')
+         print (' mok -n <name> name')
          sys.exit()
       elif opt in ("-i", "--install"):
          mok_install.install()
          sys.exit()
       elif opt in ("-b", "--background"):
          if killpid():
-            print("Previous instance closed. Restarting.")
-         cmd = "nohup "+sys.executable+" "+v.paths.script+" -r > /dev/null &"
-         os.system(cmd)
+            print("MOK is already running. Restarting.")
+         if shutil.which('nohup') is not None:
+            cmd = "nohup "+sys.executable+" "+v.paths.script + " -r"
+            if v.httpserver:
+               cmd += ' -w'
+            cmd += "  > /dev/null &"
+            os.system(cmd)
+         else:
+            logging.error("nohup is not available, can not run in background. See the docs to learn other methods to run MOK in the background.")
          sys.exit()
       elif opt in ("-s", "--stop"):
          if killpid():
@@ -88,11 +106,13 @@ def main(argv):
             print("Mok was not running")
          sys.exit()
       elif opt in ("-r", "--run"):
-         killpid()
+         if killpid():
+            print("MOK is already running. Restarting.")
          writepid()
-         ipc.listen()
-         sys.exit()
+         ishost = True
 
+      elif opt in ("-w", "--web"):
+         v.httpserver = True
       elif opt == '-x':
          options['venv'] = True
          v.venv = True
@@ -110,10 +130,20 @@ def main(argv):
    if len(opts) == 0:
       print("No parameters. Use -h")
    else:
-      try:
-         ipc.send(options)
-      except Exception as error:
-         print("An error occured. Run -i to install dependecies.", error)
+      if ishost:
+         if v.httpserver:
+            import mok_webserver
+            print("Starting HTTP Deamon...")
+            threading.Thread(target=mok_webserver.run, args=(123123,)).start()
+
+         print("Starting IPC Listener...")
+         ipc.listen()
+         sys.exit()
+      else:
+         try:
+            ipc.send(options)
+         except Exception as error:
+            print("An error occured. Run -i to install dependecies.", error)
 
 
 if __name__ == "__main__":        
