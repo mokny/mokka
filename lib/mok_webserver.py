@@ -8,7 +8,6 @@ def sighandler(signum, frame):
 signal.signal(signal.SIGINT, sighandler)
 
 hostName = "localhost"
-serverPort = 8080
 
 class MyServer(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -24,12 +23,13 @@ class MyServer(BaseHTTPRequestHandler):
 
 
 def run(port):
-    webServer = HTTPServer((hostName, serverPort), MyServer)
+    webServer = HTTPServer((hostName, port), MyServer)
 
 
     try:
         webServer.serve_forever()
     except KeyboardInterrupt:
+        sys.exit()
         pass
  
 

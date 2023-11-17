@@ -5,6 +5,8 @@ import mok_vars as v
 import socket
 from contextlib import closing
 import hashlib
+import time
+import sys
 
 clientcon = False
 
@@ -24,14 +26,27 @@ def read_port():
     return int(f.read())
 
 def MessageReceived(conn):
+    threading.Thread(target=testsendinterval, args=(conn,)).start()
+
     msg = ''
     while True:
         try:
             msg = conn.recv()
             print(msg)
+            conn.send("ack")
         except:
             conn.close()
             break
+
+def testsendinterval(b):
+    r = 0
+    try:
+        while True:
+            r = r + 1
+            time.sleep(1)
+            b.send("lalalalalala" + str(r))
+    except:
+        pass
 
 def listen():
     newport = get_free_port()
@@ -43,12 +58,38 @@ def listen():
         threading.Thread(target=MessageReceived, args=(listener.accept(),)).start()
     listener.close()
 
-def send(data):
+v.persistentcon = False
+
+
+def persistantrecv(con):
+    msg = ''
+    while True:
+        try:
+            msg = con.recv()
+                        
+            print("\u001B[s", end="")     # Save current cursor position
+            print("\u001B[A", end="")     # Move cursor up one line
+            print("\u001B[999D", end="")  # Move cursor to beginning of line
+            print("\u001B[S", end="")     # Scroll up/pan window down 1 line
+            print("\u001B[L", end="")     # Insert new line
+            print(msg, end="")     # Print output status msg
+            print("\u001B[u", end="", flush=True)     # Jump back to saved cursor position            
+            #print(msg)
+        except:
+            break
+
+def connect():
     try:
         address = ('localhost', read_port())
-        clientcon = Client(address, authkey=str.encode(str(hashlib.sha256(v.paths.script.encode('utf-8')).hexdigest())))
-        clientcon.send(data)
-        clientcon.close()        
+        v.persistentcon = Client(address, authkey=str.encode(str(hashlib.sha256(v.paths.script.encode('utf-8')).hexdigest())))
+        threading.Thread(target=persistantrecv, args=(v.persistentcon,)).start()
     except:
         print("Mok not running? Start mok master first.")
-        
+        sys.exit()
+
+def disconnect():
+    v.persistentcon.close()
+
+def persistentsend(data):
+    v.persistentcon.send(data)
+
