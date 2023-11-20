@@ -45,7 +45,7 @@ def main():
     #print(opt.isParam('quak'))
 
     # Kill old instances
-    if opt.getMethod() == "EXIT":
+    if opt.getMethod() == "SHUTDOWN":
         pid.kill()
         pid.removefile()
         os._exit(0)
@@ -103,6 +103,10 @@ def main():
             while True:
                 s = input('> ')
                 if s.upper() == "EXIT":
+                    os._exit(0)
+                elif s.upper() == "SHUTDOWN":
+                    handlers.protreq(v.client, 'INPUT', s)
+                    time.sleep(0.2)
                     os._exit(0)
                 handlers.protreq(v.client, 'INPUT', s)
             pass

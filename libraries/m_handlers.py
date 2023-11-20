@@ -16,20 +16,24 @@ def protinput(con):
 
 def serverHandler(con, data = False):
     try:
+        # In App console commands
         if data['method'].upper() == 'INPUT':
-            #protreq(con, 'output', 'Received!')
             if data['data'].upper() == 'EXIT':
                 protdisc(con)
             elif data['data'].upper() == 'HELP':
                 protreq(con, 'output', 'Commands:')
                 protreq(con, 'output', ' HELP       - This help document')
                 protreq(con, 'output', ' EXIT       - Exit the shell')
+                protreq(con, 'output', ' SHUTDOWN   - Shutdown the service')
                 protreq(con, 'output', ' ABOUT      - About this software')
             elif data['data'].upper() == 'ABOUT':
                 protreq(con, 'output', 'MS - by Till Vennefrohne 2023')
+            elif data['data'].upper() == 'SHUTDOWN':
+                os._exit(0)
             else:
                 protreq(con, 'output', 'Unknown command. Type HELP')
 
+        # Shell passthru
         elif data['method'].upper() == 'COMMANDLINE':
             if data['data'][0].upper() == 'STATUS':
                 protreq(con, 'output', 'Service is up and running')
@@ -38,7 +42,7 @@ def serverHandler(con, data = False):
             elif data['data'][0].upper() == 'HELP':
                 protreq(con, 'output', 'GENERAL COMMANDS')
                 protreq(con, 'output', ' HELP')
-                protreq(con, 'output', ' EXIT')
+                protreq(con, 'output', ' SHUTDOWN')
                 protreq(con, 'output', ' STATUS')
                 protreq(con, 'output', ' JOIN')
                 protdisc(con)
