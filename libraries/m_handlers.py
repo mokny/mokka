@@ -2,6 +2,9 @@ import m_ipc
 import os
 from subprocess import Popen, PIPE
 
+import m_module as m
+
+
 def protreq(con, method, data):
     payload = {
         'method': method,
@@ -32,7 +35,8 @@ def serverHandler(con, data = False):
             elif data['data'].upper() == 'SHUTDOWN':
                 os._exit(0)
             elif data['data'].upper() == 'RUN':
-                protreq(con, 'output', str(data))
+                p = m.Module(con, 'asd','asd').start()
+                #protreq(con, 'output', str(data))
             else:
                 protreq(con, 'output', 'Unknown command. Type HELP')
 
