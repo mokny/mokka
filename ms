@@ -8,6 +8,12 @@ import signal
 import logging
 import threading
 
+# Handle Ctrl-C Events
+def sighandler(signum, frame):
+    os._exit(0)
+signal.signal(signal.SIGINT, sighandler)
+
+
 # Change to program path as working directory
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
@@ -34,9 +40,9 @@ def main():
         print("Application directory is not writable. Exiting.")
         os._exit(1)
 
-    print(opt.getMethod())
-    print(opt.getValue('asd'))
-    print(opt.isParam('quak'))
+    #print(opt.getMethod())
+    #print(opt.getValue('asd'))
+    #print(opt.isParam('quak'))
 
     # Kill old instances
     if opt.getMethod() == "EXIT":
@@ -60,7 +66,11 @@ def main():
         #Start the client and try to connect to service
         v.client = ipc.startClient(handlers.clientHandler, ipc.getPort(pt.pathAbsolute() + '/.ipcport'), ipc.getSecret(pt.pathAbsolute() + '/.ipctoken'))
         if not pid.check() and not v.client: #Service not available, so restart it with nohup
-            os.system("nohup "+sys.executable+" "+pt.pathScript() + " RUNSERVICE > /dev/null &")
+            if shutil.which('nohup') is not None:
+                os.system("nohup "+sys.executable+" "+pt.pathScript() + " RUNSERVICE > /dev/null &")
+            else:
+                print("nohup is required. Exiting")
+                os._exit(1)
 
             # Now try to connect
             retries = 0
@@ -85,9 +95,24 @@ def main():
     # If process is Client
     elif v.client:
         
-        while True:
-            v.client.send("kakaka")
-            time.sleep(1)
+        if not opt.getMethod():
+            pass
+        elif opt.getMethod() == 'JOIN':
+            handlers.protreq(v.client, 'COMMANDLINE', opt.commandlineoptions)
+            s = ''
+            while True:
+                s = input('> ')
+                if s.upper() == "EXIT":
+                    os._exit(0)
+                handlers.protreq(v.client, 'INPUT', s)
+            pass
+        else:
+            handlers.protreq(v.client, 'COMMANDLINE', opt.commandlineoptions)
+            pass
+
+            #while True:
+            #    v.client.send("kakaka")
+            #    time.sleep(1)
 
 
 
