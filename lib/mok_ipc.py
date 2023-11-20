@@ -7,6 +7,7 @@ from contextlib import closing
 import hashlib
 import time
 import sys
+import os
 
 clientcon = False
 
@@ -26,12 +27,27 @@ def read_port():
     return int(f.read())
 
 def MessageReceived(conn):
-    threading.Thread(target=testsendinterval, args=(conn,)).start()
-
     msg = ''
+    method = ''
     while True:
         try:
             msg = conn.recv()
+            if isinstance(msg, dict):
+                method = msg['method']
+
+                if method == 'status':
+                    conn.send('OK')
+                    conn.send("CLOSE")
+                elif method == 'inputtest':
+                    conn.send('OK')
+                    conn.send('INPUT')
+                elif method == 'test':
+                    conn.send('Test started')
+                    threading.Thread(target=testsendinterval, args=(conn,)).start()
+                    conn.send('INPUT')
+                else:
+                    conn.send('Unknown method.')
+                    conn.send('CLOSE')
             print(msg)
             conn.send("ack")
         except:
@@ -66,7 +82,10 @@ def persistantrecv(con):
     while True:
         try:
             msg = con.recv()
-                        
+            if msg == 'CLOSE':
+                os._exit(0)
+            if msg == 'INPUT':
+                v.inputrequired = True
             print("\u001B[s", end="")     # Save current cursor position
             print("\u001B[A", end="")     # Move cursor up one line
             print("\u001B[999D", end="")  # Move cursor to beginning of line

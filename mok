@@ -49,6 +49,7 @@ v.backgroundwrapper = False
 v.ishost = False
 v.httpserver = False
 v.consolemode = False
+v.inputrequired = False
 
 def writepid():
    f = open(".pid", "w")
@@ -149,7 +150,9 @@ def help(wizard):
 def main(argv):
 
    options = {}
-   opts, args = getopt.getopt(argv,"mwbxhig:vse:rj:",["join", "web", "background", "run","install","git=","verbose","script","start","stop"])
+   options['method'] = ''
+
+   opts, args = getopt.getopt(argv,"m:wbxhig:vse:rj:",["status" "join", "web", "background", "run","install","git=","verbose","script","start","stop"])
    for opt, arg in opts:
       if opt == '-h':
          help(False)
@@ -177,11 +180,17 @@ def main(argv):
          writepid()
          v.ishost = True
 
+      elif opt == '-m':
+         v.consolemode = True
+         options['method'] = arg
+
+      elif opt == '-x':
+         options['method'] = "status"
       elif opt == '-x':
          options['venv'] = True
          v.venv = True
       elif opt == '-e':
-         options['executable'] = arg
+         options['method'] = 'inputtest'
          v.executable = arg
       elif opt == '-r':
          options['repository'] = arg
@@ -229,10 +238,14 @@ def main(argv):
          ipc.persistentsend(options)
          if v.consolemode:
             while True:
-               msg = input("> ")
-               if msg == "c":
-                  break
-               ipc.persistentsend(msg)
+               if v.inputrequired:
+                  v.inputrequired = False
+                  msg = input("> ")
+                  if msg == "c":
+                     break
+                  ipc.persistentsend(msg)
+               else:
+                  time.sleep(0.1)
          ipc.disconnect()
 
          #import mok_venv
