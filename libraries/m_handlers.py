@@ -48,7 +48,20 @@ def serverHandler(con, data = False):
                 protdisc(con)
             
             elif data['data'][0].upper() == 'JOIN':
-                protreq(con, 'output', 'Shell. Type EXIT to leave')
+                protreq(con, 'output', '          _   _         _        ')
+                protreq(con, 'output', '         /\_\/\_\ _    / /\      ')
+                protreq(con, 'output', '        / / / / //\_\ / /  \     ')
+                protreq(con, 'output', '       /\ \/ \ \/ / // / /\ \__  ')
+                protreq(con, 'output', '      /  \____\__/ // / /\ \___\ ')
+                protreq(con, 'output', '     / /\/________/ \ \ \ \/___/ ')
+                protreq(con, 'output', '    / / /\/_// / /   \ \ \       ')
+                protreq(con, 'output', '   / / /    / / /_    \ \ \      ')
+                protreq(con, 'output', '  / / /    / / //_/\__/ / /      ')
+                protreq(con, 'output', '  \/_/    / / / \ \/___/ /       ')
+                protreq(con, 'output', '          \/_/   \_____\/        ')
+                protreq(con, 'output', '')
+                protreq(con, 'output', '** MS Console                  *')
+                protreq(con, 'output', '** Shell. Type EXIT to leave   *')
 
             else:
                 protreq(con, 'output', 'Use HELP for more information. Exiting.')
