@@ -1,5 +1,6 @@
 import m_ipc
 import os
+from subprocess import Popen, PIPE
 
 def protreq(con, method, data):
     payload = {
@@ -30,6 +31,8 @@ def serverHandler(con, data = False):
                 protreq(con, 'output', 'MS - by Till Vennefrohne 2023')
             elif data['data'].upper() == 'SHUTDOWN':
                 os._exit(0)
+            elif data['data'].upper() == 'RUN':
+                protreq(con, 'output', str(data))
             else:
                 protreq(con, 'output', 'Unknown command. Type HELP')
 
@@ -60,8 +63,9 @@ def serverHandler(con, data = False):
                 protreq(con, 'output', '  \/_/    / / / \ \/___/ /       ')
                 protreq(con, 'output', '          \/_/   \_____\/        ')
                 protreq(con, 'output', '')
-                protreq(con, 'output', '** MS Console                  *')
-                protreq(con, 'output', '** Shell. Type EXIT to leave   *')
+                protreq(con, 'output', '*  MS Console                   *')
+                protreq(con, 'output', '*  Shell. Type EXIT to leave    *')
+
 
             else:
                 protreq(con, 'output', 'Use HELP for more information. Exiting.')

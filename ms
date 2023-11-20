@@ -107,16 +107,12 @@ def main():
                 elif s.upper() == "SHUTDOWN":
                     handlers.protreq(v.client, 'INPUT', s)
                     time.sleep(0.2)
+                    pid.removefile()
                     os._exit(0)
                 handlers.protreq(v.client, 'INPUT', s)
             pass
         else:
             handlers.protreq(v.client, 'COMMANDLINE', opt.commandlineoptions)
-            pass
-
-            #while True:
-            #    v.client.send("kakaka")
-            #    time.sleep(1)
 
 
 
