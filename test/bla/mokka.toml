@@ -1,0 +1,6 @@
+[GENERAL]
+title = "TOML Example"
+ident = "bla"
+exec = "init.py"
+python = "/usr/bin/python3"
+venv = false

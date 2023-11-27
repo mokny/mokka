@@ -10,7 +10,7 @@ def kill():
    try:
       f = open(".pid", "r")
       os.kill(int(f.read()), signal.SIGKILL)
-      removepidfile()
+      removefile()
       return True
    except:
       return False

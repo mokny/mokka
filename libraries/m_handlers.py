@@ -72,7 +72,7 @@ def out(msg):
     print("\u001B[999D", end="")  # Move cursor to beginning of line
     print("\u001B[S", end="")     # Scroll up/pan window down 1 line
     print("\u001B[L", end="")     # Insert new line
-    print(msg, end="")     # Print output status msg
+    print(str(msg), end="")     # Print output status msg
     print("\u001B[u", end="", flush=True)     # Jump back to saved cursor position            
      
 def commands(con, cmd):
@@ -124,16 +124,16 @@ def commands(con, cmd):
             elif method == 'IN':
                 protreq(con, 'inputenabled', con.workspace)
                 ident = parts[1].upper()
-                if ident in v.modules:
+                if ident in v.modules[con.workspace]:
                     oparts = parts[2:]
                     inp = ' '.join(oparts)
-                    v.modules[ident].sendInput(inp)
+                    v.modules[con.workspace][ident].sendInput(inp)
                 else:
                     protreq(con, 'output', 'Module ' + ident + ' is not running')
             elif method == 'JOIN':
                 protreq(con, 'inputenabled', con.workspace)
                 ident = parts[1].upper()
-                if ident in v.modules:
+                if ident in v.modules[con.workspace]:
                     protreq(con, 'output', 'Joining ' + ident)
                     m.join(con, ident)
                 else:
@@ -141,42 +141,42 @@ def commands(con, cmd):
             elif method == 'PART':
                 protreq(con, 'inputenabled', con.workspace)
                 ident = parts[1].upper()
-                if ident in v.modules:
-                    v.modules[ident].part(con)
+                if ident in v.modules[con.workspace]:
+                    v.modules[con.workspace][ident].part(con)
                     protreq(con, 'output', 'Parting ' + ident)
                 else:
                     protreq(con, 'output', 'Module ' + ident + ' is not running')
             elif method == 'KILL':
                 protreq(con, 'inputenabled', con.workspace)
                 ident = parts[1].upper()
-                if ident in v.modules:
-                    v.modules[ident].kill()
+                if ident in v.modules[con.workspace]:
+                    v.modules[con.workspace][ident].kill()
                 else:
                     protreq(con, 'output', 'Module ' + ident + ' is not running')
             elif method == 'INFO':
                 protreq(con, 'inputenabled', con.workspace)
                 ident = parts[1].upper()
-                if ident in v.modules:
+                if ident in v.modules[con.workspace]:
                     protreq(con, 'output', 'Joined clients ' + str(len(v.modules[ident].joinedconnections)))
                 else:
                     protreq(con, 'output', 'Module ' + ident + ' is not running')
             elif method == 'KILLALL':
                 protreq(con, 'inputenabled', con.workspace)
                 protreq(con, 'output', 'Killed all running modules')
-                for ident in v.modules:
-                    v.modules[ident].kill()
+                for ident in v.modules[con.workspace]:
+                    v.modules[con.workspace][ident].kill()
             elif method == 'LIST':
                 protreq(con, 'inputenabled', con.workspace)
                 protreq(con, 'output', 'Running modules:')
                 protreq(con, 'output', '- - - - - - - - - - - - -')
-                for ident in v.modules:
+                for ident in v.modules[con.workspace]:
                     protreq(con, 'output', '[' + ident + ']')
                 protreq(con, 'output', '- - - - - - - - - - - - -')
             elif method == 'GETLOG':
                 protreq(con, 'inputenabled', con.workspace)
                 ident = parts[1].upper()
-                if ident in v.modules:
-                    log = v.modules[ident].output
+                if ident in v.modules[con.workspace]:
+                    log = v.modules[con.workspace][ident].output
                     for line in log:
                         protreq(con, 'output', line)
             elif method == 'MARKET':
@@ -217,22 +217,33 @@ def commands(con, cmd):
                         except Exception as err:
                             protreq(con, 'output', str(err))
 
-                    elif parts[1].upper() == 'REMOVE':
-                        oparts = parts[2:]
-                        ident = ' '.join(oparts)
-                        shutil.rmtree('workspaces/'+ con.workspace + '/' + ident)
+                    elif parts[1].upper() == 'REMOVE' or parts[1].upper() == 'RM':
+                        try:
+                            oparts = parts[2:]
+                            ident = ' '.join(oparts)
+                            shutil.rmtree('workspaces/'+ con.workspace + '/' + ident)
+                            protreq(con, 'output', 'Module removed')  
+                        except:
+                            protreq(con, 'output', 'Cannot remove module')  
                     elif parts[1].upper() == 'RUN':
                         oparts = parts[2:]
                         ident = ' '.join(oparts)
                         m.runModule(con, ident.upper())
-                    elif parts[1].upper() == 'INSTALL':
-                        oparts = parts[3:]
-                        path = ' '.join(oparts)
+                    elif parts[1].upper() == 'LIST' or parts[1].upper() == 'LS':
                         try:
-                            shutil.copytree(path, 'workspaces/' + con.workspace + '/' + parts[2])
-                            protreq(con, 'output', 'Installed.')
-                        except Exception as err:
-                            protreq(con, 'output', str(err))
+                            protreq(con, 'output', 'Installed:')  
+                            protreq(con, 'output', '- - - - - - - - -')  
+                            for name in os.listdir("workspaces/" + con.workspace):
+                                if os.path.isdir("workspaces/"+con.workspace + '/' +name):
+                                    protreq(con, 'output', '- ' + name)
+                            protreq(con, 'output', '- - - - - - - - -')  
+                        except:
+                            protreq(con, 'output', 'No modules')  
+
+                    elif parts[1].upper() == 'INSTALL':
+                        xx = m.installFromPath(con, parts[2])
+                        protreq(con, 'output', xx)
+
                     else:
                         protreq(con, 'output', 'Use MODULE HELP')
                 else:
@@ -252,6 +263,10 @@ def commands(con, cmd):
                         try:
                             os.mkdir('workspaces/' + ident)
                             con.workspace = ident
+
+                            if not con.workspace in v.modules:
+                                v.modules[con.workspace] = {}
+
                             protreq(con, 'inputenabled', con.workspace)
                             protreq(con, 'workspace', v.workspace)
                             protreq(con, 'output', 'Workspace created.')
@@ -262,16 +277,21 @@ def commands(con, cmd):
                         ident = parts[2].upper()
                         if os.path.isdir('workspaces/' + ident):
                             con.workspace = ident
+
+                            if not con.workspace in v.modules:
+                                v.modules[con.workspace] = {}
+
                             protreq(con, 'inputenabled', con.workspace)
                             protreq(con, 'output', 'Workspace switched')
                         else:
                             protreq(con, 'inputenabled', con.workspace)
                             protreq(con, 'output', 'Workspace does not exist.')
-                    elif parts[1].upper() == 'LIST':
+                    elif parts[1].upper() == 'LIST' or parts[1].upper() == 'LS':
                         protreq(con, 'inputenabled', con.workspace)
                         for name in os.listdir("workspaces/."):
                             if os.path.isdir("workspaces/"+name):
-                                protreq(con, 'output', '- ' + name)
+                                info = m.getModulesByWorkspace(name)
+                                protreq(con, 'output', '- ' + name + ' [I: '+str(len(info))+ ']')
                     elif parts[1].upper() == 'REMOVE' or  parts[1].upper() == 'RM':
                         try:
                             ident = parts[2].upper()
@@ -300,6 +320,10 @@ def commands(con, cmd):
                         except:
                             protreq(con, 'inputenabled', con.workspace)
                             protreq(con, 'output', 'Workspace could not be removed.')
+
+                    else:
+                        protreq(con, 'inputenabled', con.workspace)
+                        protreq(con, 'output', 'Unknown command. Type WORKSPACE HELP')
                 else:
                     protreq(con, 'inputenabled', con.workspace)
                     protreq(con, 'output', 'Unknown command. Type WORKSPACE HELP')

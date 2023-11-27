@@ -34,7 +34,9 @@ import m_module as m
 #Global Vars
 v.client = False
 v.server = False
-v.modules = {}
+v.modules = {
+    'DEFAULT': {}
+}
 v.workspace = 'DEFAULT'
 
 #Main
