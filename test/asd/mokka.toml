@@ -1,6 +1,6 @@
 [GENERAL]
-title = "TOML Example"
+title = "The ASD testfile"
 ident = "asd"
 exec = "init.py"
-python = "/usr/bin/python3"
-venv = false
+python = "bin/python"
+venv = true

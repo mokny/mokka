@@ -95,6 +95,8 @@ def commands(con, cmd):
                 protreq(con, 'output', ' SHUTDOWN           - Shutdown the service')
                 protreq(con, 'output', ' ABOUT              - About this software')
                 protreq(con, 'output', ' RUN <IDENT>        - Run subprocess')
+                protreq(con, 'output', ' JOIN <IDENT>       - Join subprocess output')
+                protreq(con, 'output', ' JOINALL            - Join all subprocess outputs')
                 protreq(con, 'output', ' PART <IDENT>       - Part subprocess output')
                 protreq(con, 'output', ' PARTALL            - Part all subprocess outputs')
                 protreq(con, 'output', ' LIST               - List all running subprocesses')
@@ -138,6 +140,12 @@ def commands(con, cmd):
                     m.join(con, ident)
                 else:
                     protreq(con, 'output', 'Module ' + ident + ' is not running')
+            elif method == 'JOINALL':
+                protreq(con, 'inputenabled', con.workspace)
+                protreq(con, 'output', 'Joining all running modules...')
+                for ident in v.modules[con.workspace]:
+                    protreq(con, 'output', 'Joining ' + ident)
+                    m.join(con, ident)
             elif method == 'PART':
                 protreq(con, 'inputenabled', con.workspace)
                 ident = parts[1].upper()
@@ -151,6 +159,7 @@ def commands(con, cmd):
                 ident = parts[1].upper()
                 if ident in v.modules[con.workspace]:
                     v.modules[con.workspace][ident].kill()
+                    protreq(con, 'output', "Killed")
                 else:
                     protreq(con, 'output', 'Module ' + ident + ' is not running')
             elif method == 'INFO':
@@ -165,7 +174,7 @@ def commands(con, cmd):
                 protreq(con, 'output', 'Killed all running modules')
                 for ident in v.modules[con.workspace]:
                     v.modules[con.workspace][ident].kill()
-            elif method == 'LIST':
+            elif method == 'LIST' or method == 'LS':
                 protreq(con, 'inputenabled', con.workspace)
                 protreq(con, 'output', 'Running modules:')
                 protreq(con, 'output', '- - - - - - - - - - - - -')
@@ -291,7 +300,8 @@ def commands(con, cmd):
                         for name in os.listdir("workspaces/."):
                             if os.path.isdir("workspaces/"+name):
                                 info = m.getModulesByWorkspace(name)
-                                protreq(con, 'output', '- ' + name + ' [I: '+str(len(info))+ ']')
+                                inforunning = m.getModulesRunningByWorkspace(name)
+                                protreq(con, 'output', '- ' + name + ' [I: '+str(len(info))+ ' / R: '+str(len(inforunning))+ ']')
                     elif parts[1].upper() == 'REMOVE' or  parts[1].upper() == 'RM':
                         try:
                             ident = parts[2].upper()

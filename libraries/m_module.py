@@ -5,6 +5,7 @@ import m_handlers as handlers
 import m_vars as v
 import toml
 import shutil
+import venv
 
 tlock = threading.Lock()
 
@@ -79,6 +80,8 @@ class Module(threading.Thread):
             command = ''
             command = self.config['GENERAL']['python'] + ' '
             command += self.config['GENERAL']['exec'] + ' '
+
+            self.out('Running ' + self.config['GENERAL']['title'])
             value = command
             try:
                 os.environ["PYTHONUNBUFFERED"] = "1"
@@ -118,7 +121,7 @@ def partall(con):
         v.modules[con.workspace][module].part(con)
 
 def runModule(con, ident):
-    if ident in v.modules:
+    if ident in v.modules[con.workspace]:
         handlers.protreq(con, 'output', "This module is already running")
         return
     handlers.protreq(con, 'output', 'Running ' + ident + ' in ws ' + con.workspace)
@@ -160,7 +163,11 @@ def installFromPath(con, origin):
     modcfg = check(con, origin)
     if modcfg:
         try:
-            shutil.copytree(origin, 'workspaces/' + con.workspace + '/' + modcfg['GENERAL']['ident'])
+            if modcfg['GENERAL']['venv']:
+                os.mkdir('workspaces/' + con.workspace + '/' + modcfg['GENERAL']['ident'])
+                venv.create('workspaces/' + con.workspace + '/' + modcfg['GENERAL']['ident'])
+
+            shutil.copytree(origin, 'workspaces/' + con.workspace + '/' + modcfg['GENERAL']['ident'], dirs_exist_ok=True)
             return "Installed"
         except Exception as err:
             handlers.protreq(con, 'output', str(err))
@@ -178,3 +185,10 @@ def getModulesByWorkspace(workspace):
             }
             ret[ident] = module
     return ret
+
+def getModulesRunningByWorkspace(workspace):
+    ret = {}
+    for module in v.modules[workspace]:
+        ret[module] = v.modules[workspace][module]
+    return ret
+        
