@@ -28,7 +28,8 @@ class IPCIncomingConnection(threading.Thread):
         threading.Thread.__init__(self)
         self.conn = conn
         self.msgHandler = msgHandler
-
+        self.workspace = 'DEFAULT'
+        
     def run(self):
         msg = ''
         while True:

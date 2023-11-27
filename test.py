@@ -1,7 +1,8 @@
 import sys
 
-print("I a m a atest")
-
+print("Testfile")
+v = input("Please enter your name: ")
+print("Result " + v)
 def in_venv():
     return sys.prefix != sys.base_prefix
 

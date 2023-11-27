@@ -10,7 +10,8 @@ import threading
 
 # Handle Ctrl-C Events
 def sighandler(signum, frame):
-    os._exit(0)
+    #os._exit(0)
+    pass
 signal.signal(signal.SIGINT, sighandler)
 
 
@@ -27,11 +28,14 @@ import m_path as pt
 import m_pid as pid
 import m_ipc as ipc
 import m_handlers as handlers
+import m_module as m
 
 
 #Global Vars
 v.client = False
 v.server = False
+v.modules = {}
+v.workspace = 'DEFAULT'
 
 #Main
 def main():
@@ -39,6 +43,11 @@ def main():
     if not pt.hasWritePermission(pt.pathAbsolute()):
         print("Application directory is not writable. Exiting.")
         os._exit(1)
+    try:
+        os.mkdir(pt.pathAbsolute() + '/workspaces')
+        os.mkdir(pt.pathAbsolute() + '/workspaces/DEFAULT')
+    except:
+        pass
 
     #print(opt.getMethod())
     #print(opt.getValue('asd'))
@@ -96,13 +105,15 @@ def main():
     elif v.client:
         
         if not opt.getMethod():
+            print('Use mokka help')
+            os._exit(1)
             pass
-        elif opt.getMethod() == 'JOIN':
+        elif opt.getMethod() == 'CONSOLE':
             handlers.protreq(v.client, 'COMMANDLINE', opt.commandlineoptions)
             s = ''
             while True:
-                s = input('> ')
-                if s.upper() == "EXIT":
+                s = input()
+                if s.upper() == "EXIT" or s.upper() == "Q":
                     os._exit(0)
                 elif s.upper() == "SHUTDOWN":
                     handlers.protreq(v.client, 'INPUT', s)
@@ -110,9 +121,9 @@ def main():
                     pid.removefile()
                     os._exit(0)
                 handlers.protreq(v.client, 'INPUT', s)
-            pass
         else:
             handlers.protreq(v.client, 'COMMANDLINE', opt.commandlineoptions)
+            os._exit(0)
 
 
 
