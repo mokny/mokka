@@ -4,3 +4,9 @@ ident = "asd"
 exec = "init.py"
 python = "bin/python"
 venv = true
+
+[INSTALL]
+pip = "bin/pip3"
+piplibs = [
+    'GitPython'
+]

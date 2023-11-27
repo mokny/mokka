@@ -209,15 +209,16 @@ def commands(con, cmd):
                     protreq(con, 'output', 'Use MARKET HELP')
                     pass
             elif method == 'MODULE' or method == 'MOD':
-                protreq(con, 'inputenabled', con.workspace)
                 if len(parts) >= 2:
                     if parts[1].upper() == 'HELP':
+                        protreq(con, 'inputenabled', con.workspace)
                         protreq(con, 'output', 'MODULE CREATE <IDENT> <PATH>')
                         protreq(con, 'output', 'MODULE INSTALL <IDENT> <PATH>')
                         protreq(con, 'output', 'MODULE HELP')
                         protreq(con, 'output', 'MODULE REMOVE <IDENT>')
                         protreq(con, 'output', 'MODULE RUN <IDENT>')
                     elif parts[1].upper() == 'CREATE':
+                        protreq(con, 'inputenabled', con.workspace)
                         oparts = parts[3:]
                         path = ' '.join(oparts)
                         try:
@@ -227,6 +228,7 @@ def commands(con, cmd):
                             protreq(con, 'output', str(err))
 
                     elif parts[1].upper() == 'REMOVE' or parts[1].upper() == 'RM':
+                        protreq(con, 'inputenabled', con.workspace)
                         try:
                             oparts = parts[2:]
                             ident = ' '.join(oparts)
@@ -235,10 +237,12 @@ def commands(con, cmd):
                         except:
                             protreq(con, 'output', 'Cannot remove module')  
                     elif parts[1].upper() == 'RUN':
+                        protreq(con, 'inputenabled', con.workspace)
                         oparts = parts[2:]
                         ident = ' '.join(oparts)
                         m.runModule(con, ident.upper())
                     elif parts[1].upper() == 'LIST' or parts[1].upper() == 'LS':
+                        protreq(con, 'inputenabled', con.workspace)
                         try:
                             protreq(con, 'output', 'Installed:')  
                             protreq(con, 'output', '- - - - - - - - -')  
@@ -250,8 +254,9 @@ def commands(con, cmd):
                             protreq(con, 'output', 'No modules')  
 
                     elif parts[1].upper() == 'INSTALL':
-                        xx = m.installFromPath(con, parts[2])
-                        protreq(con, 'output', xx)
+                        m.installFromPath(con, parts[2])
+                        protreq(con, 'inputenabled', con.workspace)
+                        protreq(con, 'output', '')  
 
                     else:
                         protreq(con, 'output', 'Use MODULE HELP')
@@ -297,11 +302,14 @@ def commands(con, cmd):
                             protreq(con, 'output', 'Workspace does not exist.')
                     elif parts[1].upper() == 'LIST' or parts[1].upper() == 'LS':
                         protreq(con, 'inputenabled', con.workspace)
-                        for name in os.listdir("workspaces/."):
-                            if os.path.isdir("workspaces/"+name):
-                                info = m.getModulesByWorkspace(name)
-                                inforunning = m.getModulesRunningByWorkspace(name)
-                                protreq(con, 'output', '- ' + name + ' [I: '+str(len(info))+ ' / R: '+str(len(inforunning))+ ']')
+                        try:
+                            for name in os.listdir("workspaces/."):
+                                if os.path.isdir("workspaces/"+name):
+                                    info = m.getModulesByWorkspace(name)
+                                    inforunning = m.getModulesRunningByWorkspace(name)
+                                    protreq(con, 'output', '- ' + name + ' [I: '+str(len(info))+ ' / R: '+str(len(inforunning))+ ']')
+                        except Exception as err:
+                            protreq(con, 'output', err)
                     elif parts[1].upper() == 'REMOVE' or  parts[1].upper() == 'RM':
                         try:
                             ident = parts[2].upper()

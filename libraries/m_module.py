@@ -6,6 +6,7 @@ import m_vars as v
 import toml
 import shutil
 import venv
+import sys
 
 tlock = threading.Lock()
 
@@ -159,16 +160,26 @@ def check(con, path):
         handlers.protreq(con, 'output', "No toml")
         return False
 
+
 def installFromPath(con, origin):
     modcfg = check(con, origin)
     if modcfg:
         try:
             if modcfg['GENERAL']['venv']:
-                os.mkdir('workspaces/' + con.workspace + '/' + modcfg['GENERAL']['ident'])
-                venv.create('workspaces/' + con.workspace + '/' + modcfg['GENERAL']['ident'])
-
+                modpath = 'workspaces/' + con.workspace + '/' + modcfg['GENERAL']['ident']
+                handlers.protreq(con, 'output', "Creating virtual environment...")
+                os.mkdir(modpath)
+                venv.create(modpath)
+                if 'piplibs' in modcfg['INSTALL'] and 'pip' in modcfg['INSTALL']:
+                    handlers.protreq(con, 'output', "Installing PIP...")
+                    subprocess.check_call([modpath + '/' + modcfg['GENERAL']['python'], '-m' , 'ensurepip', '--default-pip'])
+                    for piplib in modcfg['INSTALL']['piplibs']:
+                        handlers.protreq(con, 'output', "Installing " + piplib + '...')
+                        subprocess.check_call([modpath + '/' + modcfg['GENERAL']['python'], "-m", "pip", "install", piplib])
+            handlers.protreq(con, 'output', 'Copying files...')
             shutil.copytree(origin, 'workspaces/' + con.workspace + '/' + modcfg['GENERAL']['ident'], dirs_exist_ok=True)
-            return "Installed"
+            handlers.protreq(con, 'output', "Installation complete!")
+            return True
         except Exception as err:
             handlers.protreq(con, 'output', str(err))
         return True
@@ -188,6 +199,9 @@ def getModulesByWorkspace(workspace):
 
 def getModulesRunningByWorkspace(workspace):
     ret = {}
+    if not workspace in v.modules:
+        v.modules[workspace] = {}
+
     for module in v.modules[workspace]:
         ret[module] = v.modules[workspace][module]
     return ret

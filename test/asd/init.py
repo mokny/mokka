@@ -1,8 +1,13 @@
 import time
 import os
+import sys
 
+def in_venv():
+    return sys.prefix != sys.base_prefix
 
-print("Here is the bla")
+print("Virtual Environment: " + str(in_venv()))
+
+print("Here is the asd")
 print(os.getcwd())
 i=0
 while True:
