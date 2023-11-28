@@ -191,6 +191,7 @@ def installFromPath(con, origin):
             return True
         except Exception as err:
             handlers.protreq(con, 'output', str(err))
+            handlers.protreq(con, 'output', "Installation failed.")
         return True
     
     return 'Installation failed.'
