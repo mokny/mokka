@@ -29,6 +29,8 @@ class IPCIncomingConnection(threading.Thread):
         self.conn = conn
         self.msgHandler = msgHandler
         self.workspace = 'DEFAULT'
+        self.ismodule = False
+        self.module = False
         
     def run(self):
         msg = ''

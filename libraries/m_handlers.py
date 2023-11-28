@@ -6,6 +6,8 @@ from subprocess import Popen, PIPE
 import m_module as m
 import m_vars as v
 
+v.moduleconnections = {}
+
 def protreq(con, method, data):
     payload = {
         'method': method,
@@ -19,8 +21,49 @@ def protdisc(con):
 def protinput(con):
     protreq(con, 'input')
 
+def addModuleConnection(workspace, ident, con):
+    v.moduleconnections[workspace + '/' + ident] = con
+
+def removeModuleConnection(workspace, ident):
+    try:
+        del v.moduleconnections[workspace + '/' + ident] 
+    except:
+        pass
+
+def sendToModuleConnection(workspace, ident, method, data):
+    try:
+        v.moduleconnections[workspace + '/' + ident].send({'method': method, 'data': data})
+    except:
+        try:
+            del v.moduleconnections[workspace + '/' + ident] 
+        except:
+            pass
+
+def sendToAllModulesInWorkspace(workspace, method, data):
+    for ident in v.modules[workspace]:
+        sendToModuleConnection(workspace, ident, method, data)
+
+def triggerEvent(data):
+    sendToAllModules('EVENT', data)
+
+def sendToAllModules(method, data):
+    try:
+        for i in v.moduleconnections:
+            v.moduleconnections[i].send({'method': method, 'data': data})
+    except:
+        try:
+            del v.moduleconnections[i] 
+        except:
+            pass
+
 def serverHandler(con, data = False):
     try:
+        # Client auths as module
+        if data['method'].upper() == 'IMMODULE':
+            con.send({'method':'CONACCEPT', 'data':  data['data']})
+            addModuleConnection(data['data']['workspace'],data['data']['ident'], con)
+            return
+        
         # In App console commands
         if data['method'].upper() == 'INPUT':
             commands(con, data['data'])
@@ -181,6 +224,12 @@ def commands(con, cmd):
                 for ident in v.modules[con.workspace]:
                     protreq(con, 'output', '[' + ident + ']')
                 protreq(con, 'output', '- - - - - - - - - - - - -')
+            elif method == 'EVENT' or method == 'EV':
+                protreq(con, 'inputenabled', con.workspace)
+                oparts = parts[1:]
+                term = ' '.join(oparts)
+                triggerEvent(term)
+                protreq(con, 'output', 'Done.')
             elif method == 'GETLOG':
                 protreq(con, 'inputenabled', con.workspace)
                 ident = parts[1].upper()
@@ -323,6 +372,10 @@ def commands(con, cmd):
                                 else:
                                     if os.path.isdir("workspaces/"+ident):
                                         try:
+                                            inforunning = m.getModulesRunningByWorkspace(ident)
+                                            for key in inforunning:
+                                                protreq(con, 'output', "Killing " + key)
+                                                m.kill(ident,key)
                                             shutil.rmtree("workspaces/"+ident)
                                             protreq(con, 'inputenabled', con.workspace)
                                             protreq(con, 'output', 'Workspace removed.')

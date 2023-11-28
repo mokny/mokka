@@ -22,7 +22,8 @@ class Module(threading.Thread):
         self.output = []
         self.joinedconnections = []
         self.workspace = con.workspace
-
+        self.ipcconnection = False
+        
         self.config = {}
 
         with tlock:
@@ -160,24 +161,32 @@ def check(con, path):
         handlers.protreq(con, 'output', "No toml")
         return False
 
+def kill(workspace, ident):
+    if workspace in v.modules:
+        if ident in v.modules[workspace]:
+            v.modules[workspace][ident].kill()
 
 def installFromPath(con, origin):
     modcfg = check(con, origin)
     if modcfg:
         try:
+            modpath = 'workspaces/' + con.workspace + '/' + modcfg['GENERAL']['ident']
             if modcfg['GENERAL']['venv']:
-                modpath = 'workspaces/' + con.workspace + '/' + modcfg['GENERAL']['ident']
                 handlers.protreq(con, 'output', "Creating virtual environment...")
                 os.mkdir(modpath)
                 venv.create(modpath)
                 if 'piplibs' in modcfg['INSTALL'] and 'pip' in modcfg['INSTALL']:
                     handlers.protreq(con, 'output', "Installing PIP...")
                     subprocess.check_call([modpath + '/' + modcfg['GENERAL']['python'], '-m' , 'ensurepip', '--default-pip'])
+                    handlers.protreq(con, 'output', "Installing TOML...")
+                    subprocess.check_call([modpath + '/' + modcfg['GENERAL']['python'], "-m", "pip", "install", 'toml'])
                     for piplib in modcfg['INSTALL']['piplibs']:
                         handlers.protreq(con, 'output', "Installing " + piplib + '...')
                         subprocess.check_call([modpath + '/' + modcfg['GENERAL']['python'], "-m", "pip", "install", piplib])
             handlers.protreq(con, 'output', 'Copying files...')
-            shutil.copytree(origin, 'workspaces/' + con.workspace + '/' + modcfg['GENERAL']['ident'], dirs_exist_ok=True)
+            shutil.copytree(origin, modpath, dirs_exist_ok=True)
+            handlers.protreq(con, 'output', 'Copying ipc modules...')
+            shutil.copy('shared/mokka.py', modpath + '/mokka.py')
             handlers.protreq(con, 'output', "Installation complete!")
             return True
         except Exception as err:
