@@ -54,10 +54,6 @@ def main():
     except:
         pass
 
-    #print(opt.getMethod())
-    #print(opt.getValue('asd'))
-    #print(opt.isParam('quak'))
-
     # Kill old instances
     if opt.getMethod() == "SHUTDOWN":
         pid.kill()

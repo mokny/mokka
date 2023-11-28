@@ -290,6 +290,10 @@ def commands(con, cmd):
                         try:
                             oparts = parts[2:]
                             ident = ' '.join(oparts)
+                            try:
+                                v.modules[con.workspace][ident.upper()].kill()
+                            except Exception as err:
+                                pass
                             shutil.rmtree('workspaces/'+ con.workspace + '/' + ident)
                             protreq(con, 'output', 'Module removed')  
                         except:

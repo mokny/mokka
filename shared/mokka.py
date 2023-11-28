@@ -81,8 +81,7 @@ def msgHandler(msg):
 
         if method.upper() == 'RESPONSE':
             if responseHandler:
-                responseID = msg['requestid']
-                responseHandler(responseID, data)
+                responseHandler(msg['requestid'], data)
 
     except:
         pass
