@@ -1,23 +1,19 @@
 import threading
-import time
 import uuid
-import random
 from multiprocessing.connection import Listener, Client
-from contextlib import closing
-import socket
 import toml
 import os
 import pathlib
+import uuid
 
 tlock = threading.Lock()
 
 client = False
+config = False
 
 eventHandler = False
 messageHandler = False
-
-
-print("Here is mokka")
+responseHandler = False
 
 def readConfig():
     path = 'mokka.toml'
@@ -46,7 +42,7 @@ class IPCOutgoingConnection(threading.Thread):
             try:
                 msg = self.conn.recv()
                 with tlock:
-                    self.msgHandler(self, msg)
+                    self.msgHandler(msg)
             except Exception as err:
                 break
 
@@ -70,7 +66,7 @@ def getSecret(path):
     except:
         return False
 
-def msgHandler(con, msg):
+def msgHandler(msg):
     try:
         method = msg['method']
         data = msg['data']
@@ -83,24 +79,42 @@ def msgHandler(con, msg):
             if eventHandler:
                 eventHandler(data)
 
+        if method.upper() == 'RESPONSE':
+            if responseHandler:
+                responseID = msg['requestid']
+                responseHandler(responseID, data)
+
     except:
         pass
 
-def setEventHandler(e):
+def setEventHandler(e = False):
     global eventHandler
     eventHandler = e
 
-def setMessageHandler(e):
+def setMessageHandler(e = False):
     global messageHandler
     messageHandler = e
+
+def setResponseHandler(e = False):
+    global responseHandler
+    responseHandler = e
 
 def getWorkspace():
     return os.path.basename(os.path.dirname(pathlib.Path("../").parent.absolute()))
 
 def getModuleName():
-    return os.path.basename(os.path.dirname(pathlib.Path("../").parent.absolute()))
+    return os.path.basename(os.path.dirname(pathlib.Path("./").parent.absolute()))
+
+def request(method, data = False):
+    requestid = getWorkspace() + '/' + config['GENERAL']['ident'] + '/' + str(uuid.uuid4())
+    if client:
+        client.send({'method': 'REQUEST', 'rmethod': method, 'requestid': requestid, 'data': data})
+        return requestid
+
 
 def init():
+    global client
+    global config
     config = readConfig()
     try:
         address = ('localhost', getPort('../../.ipcport'))
@@ -108,9 +122,8 @@ def init():
         client = IPCOutgoingConnection(conn, msgHandler)
         client.start()
         client.send({'method': 'IMMODULE', 'data': {'ident': config['GENERAL']['ident'], 'workspace': getWorkspace()}})
-        return client
     except Exception as err:
         print("MOKKA: Could not connect to parent process")
-        return False
+        os._exit(1)
 
-print(init())
+init()

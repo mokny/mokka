@@ -64,6 +64,11 @@ def serverHandler(con, data = False):
             addModuleConnection(data['data']['workspace'],data['data']['ident'], con)
             return
         
+        # Client module request
+        if data['method'].upper() == 'REQUEST':
+            con.send({'method':'RESPONSE', 'requestid': data['requestid'], 'data':  'Yaaaaaaaa'})
+            return
+        
         # In App console commands
         if data['method'].upper() == 'INPUT':
             commands(con, data['data'])
@@ -266,6 +271,7 @@ def commands(con, cmd):
                         protreq(con, 'output', 'MODULE HELP')
                         protreq(con, 'output', 'MODULE REMOVE <IDENT>')
                         protreq(con, 'output', 'MODULE RUN <IDENT>')
+                        protreq(con, 'output', 'MODULE UPDATEIPC or UIPC <IDENT>')
                     elif parts[1].upper() == 'CREATE':
                         protreq(con, 'inputenabled', con.workspace)
                         oparts = parts[3:]
@@ -283,6 +289,18 @@ def commands(con, cmd):
                             ident = ' '.join(oparts)
                             shutil.rmtree('workspaces/'+ con.workspace + '/' + ident)
                             protreq(con, 'output', 'Module removed')  
+                        except:
+                            protreq(con, 'output', 'Cannot remove module')  
+                    elif parts[1].upper() == 'UPDATEIPC' or parts[1].upper() == 'UIPC':
+                        protreq(con, 'inputenabled', con.workspace)
+                        try:
+                            oparts = parts[2:]
+                            ident = ' '.join(oparts)
+                            if os.path.isdir('workspaces/'+ con.workspace + '/' + ident):
+                                if os.path.isfile('workspaces/'+ con.workspace + '/' + ident + '/mokka.py'):
+                                    os.remove('workspaces/'+ con.workspace + '/' + ident + '/mokka.py')
+                                shutil.copy('shared/mokka.py','workspaces/'+ con.workspace + '/' + ident + '/mokka.py')
+                            protreq(con, 'output', 'IPC Updated')  
                         except:
                             protreq(con, 'output', 'Cannot remove module')  
                     elif parts[1].upper() == 'RUN':
