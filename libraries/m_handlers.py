@@ -66,7 +66,10 @@ def serverHandler(con, data = False):
         
         # Client module request
         if data['method'].upper() == 'REQUEST':
-            con.send({'method':'RESPONSE', 'requestid': data['requestid'], 'data':  'Yaaaaaaaa'})
+            if data['rmethod'] == 'STATUS':
+                con.send({'method':'RESPONSE', 'requestid': data['requestid'], 'data':  'OKAY'})
+            else:
+                con.send({'method':'RESPONSE', 'requestid': data['requestid'], 'data':  'INVALID REQUEST'})
             return
         
         # In App console commands

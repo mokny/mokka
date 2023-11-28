@@ -9,7 +9,7 @@ def in_venv():
 def eventHandler(msg):
     print("EVENT " + str(msg))
     print("Making a request...")
-    rid = mokka.request('TEST','BLA')
+    rid = mokka.request('STATUS','')
     print("RequestID: " + rid)
 
 def responseHandler(requestid, data):
