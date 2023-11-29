@@ -36,7 +36,7 @@ class Module(threading.Thread):
         self.join(self.con)
 
     def readConfig(self):
-        path = '../workspaces/' + self.workspace + '/' + self.modident + '/mokka.toml'
+        path = 'workspaces/' + self.workspace + '/' + self.modident + '/mokka.toml'
         if os.path.isfile(path):
             try:
                 f = open(path, "r")
