@@ -6,10 +6,21 @@ Python runtime and workspace manager
 git clone https://github.com/mokny/mok
 cd mok
 chmod +x mokka
-chmod 777 workspaces
+chmod +w workspaces
 ```
 
 ## Running mokka
+If exec permission was set for mokka:
 ```
 ./mokka console
+```
+
+If you want to use python:
+```
+python mokka
+```
+
+If you want to use a specific python version (replace XXX with version):
+```
+/usr/bin/pythonXXX mokka
 ```
