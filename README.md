@@ -2,7 +2,12 @@
 Python runtime and workspace manager
 
 ## Installation
-tba
+```
+git clone https://github.com/mokny/mok
+cd mok
+chmod +x mokka
+chmod 777 workspaces
+```
 
 ## Running mokka
 ```
