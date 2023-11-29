@@ -175,7 +175,7 @@ def installFromPath(con, origin):
                 handlers.protreq(con, 'output', "Creating virtual environment...")
                 os.mkdir(modpath)
                 venv.create(modpath)
-                if 'piplibs' in modcfg['INSTALL'] and 'pip' in modcfg['INSTALL']:
+                if 'piplibs' in modcfg['INSTALL']:
                     handlers.protreq(con, 'output', "Installing PIP...")
                     subprocess.check_call([modpath + '/' + modcfg['GENERAL']['python'], '-m' , 'ensurepip', '--default-pip'])
                     handlers.protreq(con, 'output', "Installing TOML...")
