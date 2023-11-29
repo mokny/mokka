@@ -3,8 +3,8 @@ Python runtime and workspace manager
 
 ## Installation
 ```
-git clone https://github.com/mokny/mok
-cd mok
+git clone https://github.com/mokny/mokka
+cd mokka
 chmod +x mokka
 chmod +w workspaces
 ```
