@@ -150,7 +150,7 @@ def commands(con, cmd):
                 protreq(con, 'output', ' JOINALL            - Join all subprocess outputs')
                 protreq(con, 'output', ' PART <IDENT>       - Part subprocess output')
                 protreq(con, 'output', ' PARTALL            - Part all subprocess outputs')
-                protreq(con, 'output', ' PROC or PR         - List all running subprocesses')
+                protreq(con, 'output', ' PROC or PS         - List all running subprocesses')
                 protreq(con, 'output', ' GETLOG <IDENT>     - Get log of subprocess')
                 protreq(con, 'output', ' MARKET             - Marketplace')
                 protreq(con, 'output', ' MODULE or MOD      - Modules')
@@ -214,6 +214,14 @@ def commands(con, cmd):
                     protreq(con, 'output', "Killed")
                 else:
                     protreq(con, 'output', 'Module ' + ident + ' is not running')
+            elif method == 'PERF':
+                protreq(con, 'inputenabled', con.workspace)
+                ident = parts[1].upper()
+                if ident in v.modules[con.workspace]:
+                    perf = v.modules[con.workspace][ident].getPerformance()
+                    protreq(con, 'output', str(perf))
+                else:
+                    protreq(con, 'output', 'Module ' + ident + ' is not running')
             elif method == 'INFO':
                 protreq(con, 'inputenabled', con.workspace)
                 ident = parts[1].upper()
@@ -226,7 +234,7 @@ def commands(con, cmd):
                 protreq(con, 'output', 'Killed all running modules')
                 for ident in v.modules[con.workspace]:
                     v.modules[con.workspace][ident].kill()
-            elif method == 'PROC' or method == 'PR':
+            elif method == 'PROC' or method == 'PS':
                 protreq(con, 'inputenabled', con.workspace)
                 protreq(con, 'output', 'Running modules:')
                 protreq(con, 'output', '- - - - - - - - - - - - -')

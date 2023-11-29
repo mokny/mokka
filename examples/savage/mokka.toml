@@ -1,0 +1,8 @@
+[GENERAL]
+title = "Savage"
+ident = "savage"
+exec = "init.py"
+python = "bin/python"
+venv = true
+
+[INSTALL]

@@ -25,7 +25,7 @@ print("Here is the asd")
 print(os.getcwd())
 i=0
 while True:
-    print(str(uuid.uuid4()) + ' ' +  str(i))
-    i+=11
-    time.sleep(1)
+    print(str(uuid.uuid4()) + ' - Cycle: ' +  str(i))
+    i+=1
+    time.sleep(20)
 print("Okay?")

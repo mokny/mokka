@@ -7,6 +7,7 @@ import toml
 import shutil
 import venv
 import sys
+import psutil
 
 tlock = threading.Lock()
 
@@ -23,7 +24,8 @@ class Module(threading.Thread):
         self.joinedconnections = []
         self.workspace = con.workspace
         self.ipcconnection = False
-        
+        self.ps = False
+
         self.config = {}
 
         with tlock:
@@ -88,6 +90,8 @@ class Module(threading.Thread):
             try:
                 os.environ["PYTHONUNBUFFERED"] = "1"
                 self.process = subprocess.Popen(value.split(' '), stdout = subprocess.PIPE, stdin = subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, preexec_fn=os.setsid, cwd='workspaces/' + self.workspace + '/' + self.modident)
+                self.ps = psutil.Process(self.process.pid)
+
                 while True:
                     line = self.process.stdout.readline()
                     self.process.stdout.flush()
@@ -102,9 +106,9 @@ class Module(threading.Thread):
                 if err:
                     self.out(str(err))
 
-                self.out(str('END'))
+                self.out(str('-- END --'))
             except Exception as err:
-                self.out(str('END WITH ERR ' + err))
+                self.out(str('-- END WITH ERR ' + str(err) + ' --'))
                 pass
         else:
             self.out(str('Config failure'))
@@ -113,7 +117,14 @@ class Module(threading.Thread):
             del v.modules[self.workspace][self.modident]
             pass
 
-
+    def getPerformance(self):
+        ret = {
+                    'cpu_time': self.ps.cpu_times().system,
+                    'cpu_percent': self.ps.cpu_percent() / psutil.cpu_count(),
+                    'status': self.ps.status(),
+        }
+        return ret
+    
 def join(con, ident):
     if ident in v.modules[con.workspace]:
         v.modules[con.workspace][ident].join(con)
