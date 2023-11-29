@@ -5,7 +5,7 @@ import random
 from multiprocessing.connection import Listener, Client
 from contextlib import closing
 import socket
-
+import os
 tlock = threading.Lock()
 
 class IPCServer(threading.Thread):
@@ -119,5 +119,14 @@ def startClient(msgHandler, portpath, secretpath):
     except:
         return False
 
+def removeFiles():
+    try:
+        os.remove('workspaces/.ipctoken')
+    except:
+        pass
+    try:
+        os.remove('workspaces/.ipcport')
+    except:
+        pass
 
 

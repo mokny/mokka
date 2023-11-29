@@ -1,4 +1,4 @@
 .ipcport
 .pid
 .ipctoken
-workspaces/
+workspaces/*/

@@ -2,13 +2,14 @@ import time
 import os
 import sys
 import mokka
+import uuid
 
 def in_venv():
     return sys.prefix != sys.base_prefix
 
 def eventHandler(msg):
     print("EVENT " + str(msg))
-    print("Making a request...")
+    print("Making a STATUS request...")
     rid = mokka.request('STATUS','')
     print("RequestID: " + rid)
 
@@ -24,7 +25,7 @@ print("Here is the asd")
 print(os.getcwd())
 i=0
 while True:
-    print("hay " + str(i))
+    print(str(uuid.uuid4()) + ' ' +  str(i))
     i+=11
     time.sleep(1)
 print("Okay?")

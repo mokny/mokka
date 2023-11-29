@@ -116,8 +116,8 @@ def init():
     global config
     config = readConfig()
     try:
-        address = ('localhost', getPort('../../.ipcport'))
-        conn = Client(address, authkey=str.encode(str(getSecret('../../.ipctoken'))))
+        address = ('localhost', getPort('../.ipcport'))
+        conn = Client(address, authkey=str.encode(str(getSecret('../.ipctoken'))))
         client = IPCOutgoingConnection(conn, msgHandler)
         client.start()
         client.send({'method': 'IMMODULE', 'data': {'ident': config['GENERAL']['ident'], 'workspace': getWorkspace()}})

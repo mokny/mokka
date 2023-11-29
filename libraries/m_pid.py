@@ -2,13 +2,13 @@ import os
 import signal
 
 def write():
-   f = open(".pid", "w")
+   f = open("workspaces/.pid", "w")
    f.write(str(os.getpid()))
    f.close()
 
 def kill():
    try:
-      f = open(".pid", "r")
+      f = open("workspaces/.pid", "r")
       os.kill(int(f.read()), signal.SIGKILL)
       removefile()
       return True
@@ -17,7 +17,7 @@ def kill():
 
 def check():        
    try:
-      f = open(".pid", "r")
+      f = open("workspaces/.pid", "r")
       os.kill(int(f.read()), 0)
       return True
    except OSError:
@@ -25,6 +25,6 @@ def check():
 
 def removefile():
    try:
-      os.remove('.pid')
+      os.remove('workspaces/.pid')
    except:
       pass
