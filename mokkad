@@ -140,6 +140,7 @@ def pathUser():
     return os.path.expanduser('~')
 
 def setup():
+    # Kill older instances by name
     pid = os.getpid()
     for p in psutil.process_iter():
         if p.name().lower() == 'python':
@@ -148,7 +149,7 @@ def setup():
                 if cmdl[0].lower().endswith('/python'):
                     if cmdl[1].lower() == 'mokkad':
                         if pid != p.pid:
-                            print("Old instance of Daemon was terminated.")
+                            print("Old instance of Daemon was terminated. Only one instance allowed.")
                             os.kill(p.pid,signal.SIGTERM)
             except:
                 pass
