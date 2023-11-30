@@ -100,16 +100,22 @@ class IPCIncomingConnection(threading.Thread):
 
                             # Version
                             if msg[0] == "-v":
-                                self.output("Version 0")
+                                self.output("0.0.1 b1")
                                 self.disconnect()
 
                             # Help
                             elif msg[0] == "-h":
-                                self.output('-h                 Help')
-                                self.output('-q                 Quit MOKKA Daemon')
-                                self.output('-s                 Enter Shell')
-                                self.output('-v                 Version')
-                                self.output('-w                 Create Workspace')
+                                self.output('-h                                 Help')
+                                self.output('-q                                 Quit MOKKA Daemon')
+                                self.output('-s                                 Enter Shell')
+                                self.output('-v                                 Version')
+                                self.output('WORKSPACE CREATE <IDENT>           Create Workspace')
+                                self.output('WORKSPACE REMOVE <IDENT>           Create Workspace')
+                                self.output('WORKSPACE LIST                     Create Workspace')
+                                self.output('MODULE INSTALL LOCAL <WS> <PATH>   Install module from local path')
+                                self.output('MODULE INSTALL GIT <WS> <PATH>     Install module from git')
+                                self.output('MODULE RUN <WS> <IDENT>            Run module')
+                                self.output('MODULE REMOVE <WS> <IDENT>         Remove module')
                                 self.disconnect()
                             
                             # Modules
