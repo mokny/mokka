@@ -11,6 +11,7 @@ import signal
 import psutil
 import sys
 import datetime
+import shutil
 
 tlock = threading.Lock()
 starttime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -69,6 +70,62 @@ class IPCIncomingConnection(threading.Thread):
                                 self.output('-v                 Version')
                                 self.output('-w                 Create Workspace')
                                 self.disconnect()
+                            
+                            # Workspace
+                            elif msg[0].lower() == "workspace" or msg[0].lower() == "ws":
+                                if len(msg) >= 2:
+
+                                    # Create workspace
+                                    if msg[1].lower() == "create" or msg[1].lower() == "cr":
+                                        if len(msg) == 3:
+                                            workspace = msg[2].upper()
+                                            if not workspace == '.' and not workspace == '..':
+                                                if not os.path.isdir(pathWorspace(workspace)):
+                                                    self.output("Creating Workspace " + workspace)
+                                                    os.mkdir(pathWorspace(workspace))
+                                                    self.output("Done.")
+                                                else:
+                                                    self.output("Workspace already exists.")
+                                            else:
+                                                self.output("Invalid workspace ident.")
+                                        else:
+                                            self.output("Invalid syntax. Use WORKSPACE CREATE <IDENT>")
+                                    
+                                    # Remove workspace
+                                    elif msg[1].lower() == "remove" or msg[1].lower() == "rm":
+                                        if len(msg) == 3:
+                                            workspace = msg[2].upper()
+                                            if not workspace == '.' and not workspace == '..':
+                                                if os.path.isdir(pathWorspace(workspace)):
+                                                    self.output("Removing Workspace " + workspace)
+                                                    shutil.rmtree(pathWorspace(workspace))
+                                                    self.output("Done.")
+                                                else:
+                                                    self.output("Workspace does not exist.")
+                                            else:
+                                                self.output("Invalid workspace ident.")
+                                        else:
+                                            self.output("Invalid syntax. Use WORKSPACE CREATE <IDENT>")
+                                    
+                                    # List workspaces
+                                    elif msg[1].lower() == "list" or msg[1].lower() == "ls":
+                                        self.output("Workspaces:")
+                                        for workspace in os.listdir(pathBase()):
+                                            if os.path.isdir(pathWorspace(workspace)):
+                                                self.output(workspace)
+                                        self.output("")
+
+                                    elif msg[1].lower() == "help":
+                                        self.output("WORKSPACE")
+                                        self.output("   LIST or LS            - List all workspaces")
+                                        self.output("   CREATE or CR <IDENT>  - Create a new workspace")
+                                        self.output("   REMOVE or RM <IDENT>  - Remove a workspace")
+
+                                    else:
+                                        self.output("Invalid syntax. Use WORKSPACE HELP")
+                                else:
+                                        self.output("Invalid syntax. Use WORKSPACE HELP")
+                                self.disconnect()
 
                             # Internal shell
                             elif msg[0] == "-s":
@@ -81,7 +138,7 @@ class IPCIncomingConnection(threading.Thread):
                                 self.output("|___|___| \___/ |__|\_||__|\_||__|__|")                              
                                 self.output('Multi processing / IPC framework')
                                 self.output('by Till Vennefrohne')
-                                self.output('Daemon startet at ' + str(starttime))
+                                self.output('Daemon startet at ' + str(starttime) + ' / PID: ' + str(os.getpid()))
                                 self.output('Welcome to the shell. Type Q to exit')
                                 self.output('')
                                 while True:
@@ -139,6 +196,16 @@ class IPCIncomingConnection(threading.Thread):
 def pathUser():
     return os.path.expanduser('~')
 
+def pathBase():
+    pb = os.path.join(os.path.expanduser('~'), 'mokkabase')
+    if not os.path.isdir(pb):
+        os.mkdir(pb)
+    return pb
+
+def pathWorspace(workspace):
+    pb = os.path.join(os.path.expanduser('~'), 'mokkabase', workspace)
+    return pb
+
 def setup():
     # Kill older instances by name
     pid = os.getpid()
@@ -158,9 +225,7 @@ def setup():
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
     # Create dir in user home dir
-    cwd = os.path.join(os.path.expanduser('~'), 'mokkabase')
-    if not os.path.isdir(cwd):
-        os.mkdir(cwd)
+    cwd = pathBase()
     
     # Create Port-File
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
