@@ -81,10 +81,10 @@ def init():
                 client.send(params)
                 break
             else:
-                os.system("nohup "+sys.executable+" mokkad > /dev/null &")
+                os.system("nohup "+sys.executable+" mokkad >/dev/null 2>&1 &")
             time.sleep(0.2)
         except:
-            os.system("nohup "+sys.executable+" mokkad > /dev/null &")
+            os.system("nohup "+sys.executable+" mokkad >/dev/null 2>&1 &")
             time.sleep(0.2)
         i += 1
 init()
