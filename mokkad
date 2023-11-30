@@ -12,9 +12,50 @@ import psutil
 import sys
 import datetime
 import shutil
+import subprocess 
 
 tlock = threading.Lock()
 starttime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+class Module(threading.Thread):
+    def __init__(self, workspace, ident):  
+        threading.Thread.__init__(self)
+        self.workspace = workspace
+        self.moduleident = ident
+        self.output = []
+        self.ps = False
+        self.process = None
+
+    def run(self):
+        value = 'ping -c 10000 localhost' 
+        try:
+            os.environ["PYTHONUNBUFFERED"] = "1"
+            self.process = subprocess.Popen(value.split(' '), stdout = subprocess.PIPE, stdin = subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, preexec_fn=os.setsid)#, cwd=pathModule(self.workspace, self.moduleident))
+            self.ps = psutil.Process(self.process.pid)
+            print(self.process.pid)
+            while True:
+                line = self.process.stdout.readline()
+                self.process.stdout.flush()
+                if not line:
+                    break
+                print(line.rstrip())
+                self.output.append(line.rstrip())
+                if len(self.output) > 10:
+                    self.output = self.output[1:]
+                #self.out(str(line.rstrip()))
+
+            err = self.process.stderr.read()          
+            if err:
+                self.output.append(str(err))
+                pass
+
+            self.output.append('--END--')
+        except Exception as err:
+            print(err)
+            self.output.append(str('-- END WITH ERR ' + str(err) + ' --'))
+            pass
+
+
 
 class IPCServer(threading.Thread):
     def __init__(self, port, secret):  
@@ -71,6 +112,16 @@ class IPCIncomingConnection(threading.Thread):
                                 self.output('-w                 Create Workspace')
                                 self.disconnect()
                             
+                            # Modules
+                            elif msg[0].lower() == "module" or msg[0].lower() == "mod":
+                                if len(msg) >= 2:
+                                    # Run moduke
+                                    if msg[1].lower() == "run" or msg[1].lower() == "r":
+                                        if len(msg) == 4:
+                                            self.output('Running Module...')
+                                            m = Module(msg[2], msg[3]).start()
+                                            self.disconnect()
+
                             # Workspace
                             elif msg[0].lower() == "workspace" or msg[0].lower() == "ws":
                                 if len(msg) >= 2:
@@ -172,6 +223,7 @@ class IPCIncomingConnection(threading.Thread):
                             self.disconnect()
 
             except Exception as err:
+                print(err)
                 try:
                     self.output('Error:' + err)
                 except:
@@ -204,6 +256,10 @@ def pathBase():
 
 def pathWorspace(workspace):
     pb = os.path.join(os.path.expanduser('~'), 'mokkabase', workspace)
+    return pb
+
+def pathModule(workspace, ident):
+    pb = os.path.join(os.path.expanduser('~'), 'mokkabase', workspace, ident)
     return pb
 
 def setup():
