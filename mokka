@@ -8,7 +8,7 @@ import signal
 import logging
 import threading
 import psutil
-
+import tomllib
 
 # Change to program path as working directory
 os.chdir(os.path.dirname(os.path.abspath(__file__)))

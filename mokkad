@@ -1,0 +1,172 @@
+#!/usr/bin/python3
+import threading
+import time
+import uuid
+import random
+from multiprocessing.connection import Listener, Client
+from contextlib import closing
+import socket
+import os
+import signal
+import psutil
+import sys
+import datetime
+
+tlock = threading.Lock()
+starttime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+class IPCServer(threading.Thread):
+    def __init__(self, port, secret):  
+        threading.Thread.__init__(self)
+        self.port = port
+        self.secret = secret
+
+    def run(self):
+        address = ('127.0.0.1', self.port)     # family is deduced to be 'AF_INET'
+        listener = Listener(address, authkey=str.encode(str(self.secret)))
+        while True:
+            c = IPCIncomingConnection(listener.accept())
+            c.start()
+
+class IPCIncomingConnection(threading.Thread):
+    def __init__(self, conn):  
+        threading.Thread.__init__(self)
+        self.conn = conn
+        self.workspace = 'DEFAULT'
+        self.ismodule = False
+        self.module = False
+        
+    def run(self):
+        msg = ''
+        while True:
+            try:
+                msg = self.conn.recv()
+                with tlock:
+                    if isinstance(msg, list):
+                        if len(msg) > 0:
+                            
+                            # Quit the Daemon
+                            if msg[0] == "-q":
+                                self.disconnect()
+                                os._exit(0)
+                            
+                            # Restart the Daemon
+                            if msg[0] == "-r":
+                                os.system("nohup "+sys.executable+" mokkad > /dev/null &")
+                                self.disconnect()
+                                os._exit(0)
+
+                            # Version
+                            if msg[0] == "-v":
+                                self.output("Version 0")
+                                self.disconnect()
+
+                            # Help
+                            elif msg[0] == "-h":
+                                self.output('-h                 Help')
+                                self.output('-q                 Quit MOKKA Daemon')
+                                self.output('-s                 Enter Shell')
+                                self.output('-v                 Version')
+                                self.disconnect()
+
+                            # Internal shell
+                            elif msg[0] == "-s":
+                                self.output(" ___ ___   ___   __  _  __  _   ____ ")
+                                self.output("|   |   | /   \ |  |/ ]|  |/ ] /    |")
+                                self.output("| _   _ ||     ||  ' / |  ' / |  o  |")
+                                self.output("|  \_/  ||  O  ||    \ |    \ |     |")
+                                self.output("|   |   ||     ||     \|     \|  _  |")
+                                self.output("|   |   ||     ||  .  ||  .  ||  |  |")
+                                self.output("|___|___| \___/ |__|\_||__|\_||__|__|")                              
+                                self.output('Daemon startet at ' + str(starttime))
+                                self.output('Welcome to the shell. Type Q to exit')
+                                self.output('')
+                                while True:
+                                    response = self.getInput('> ').strip()
+
+                                    if response.lower() == 'q':
+                                        self.disconnect()
+                                        break
+
+                                    elif response.lower() == 'help':
+                                        self.output('Moin, holps')
+
+                                    else:
+                                        self.output('Unknown command ' + response + '. Use HELP.')
+                            
+                            # Invalid command
+                            else:
+                                print(msg)
+                                self.output('Unknown command. Use -h')
+                                self.disconnect()
+
+                        else:
+                            print(msg)
+                            self.output('Unknown command. Use -h')
+                            self.disconnect()
+
+            except Exception as err:
+                self.conn.close()
+                break
+
+    def getInput(self, query):
+        self.send('INPUT', query)
+        return self.conn.recv()
+
+    def output(self, message):
+        self.send('OUTPUT', message)
+
+    def send(self, method, payload):
+        self.conn.send({'method': method, 'payload': payload})
+
+    def disconnect(self):
+        self.conn.close()
+
+
+def pathUser():
+    return os.path.expanduser('~')
+
+def setup():
+    pid = os.getpid()
+    for p in psutil.process_iter():
+        if p.name().lower() == 'python':
+            cmdl = p.cmdline()
+            try:
+                if cmdl[0].lower().endswith('/python'):
+                    if cmdl[1].lower() == 'mokkad':
+                        if pid != p.pid:
+                            print("Old instance of Daemon was terminated.")
+                            os.kill(p.pid,signal.SIGTERM)
+            except:
+                pass
+
+    # Jump into program dir as CWD
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+    # Create dir in user home dir
+    cwd = os.path.join(os.path.expanduser('~'), 'mokkabase')
+    if not os.path.isdir(cwd):
+        os.mkdir(cwd)
+    
+    # Create Port-File
+    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
+        s.bind(('', 0))
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        port = s.getsockname()[1]
+        with open(os.path.join(cwd,'.port'), "w") as f:
+            f.write(str(port))
+
+    # Create Secret-File
+    secret = str(uuid.uuid4()) + '/' + str(time.time()) + '/' + str(random.randint(100000,999999999))
+    with open(os.path.join(cwd,'.secret'), "w") as f:
+        f.write(secret)
+
+    return port, secret
+
+def init():
+    port, secret = setup()
+    print("Port " + str(port))
+    print("Port " + str(secret))
+    server = IPCServer(port, secret).start()
+
+init()
