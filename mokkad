@@ -52,7 +52,7 @@ class IPCIncomingConnection(threading.Thread):
                             
                             # Restart the Daemon
                             if msg[0] == "-r":
-                                os.system("nohup "+sys.executable+" mokkad > /dev/null &")
+                                os.system("nohup "+sys.executable+" mokkad >/dev/null 2>&1 &")
                                 self.disconnect()
                                 os._exit(0)
 
@@ -78,6 +78,8 @@ class IPCIncomingConnection(threading.Thread):
                                 self.output("|   |   ||     ||     \|     \|  _  |")
                                 self.output("|   |   ||     ||  .  ||  .  ||  |  |")
                                 self.output("|___|___| \___/ |__|\_||__|\_||__|__|")                              
+                                self.output('Multi processing / IPC framework')
+                                self.output('by Till Vennefrohne')
                                 self.output('Daemon startet at ' + str(starttime))
                                 self.output('Welcome to the shell. Type Q to exit')
                                 self.output('')
@@ -88,8 +90,14 @@ class IPCIncomingConnection(threading.Thread):
                                         self.disconnect()
                                         break
 
+                                    elif response.lower() == 'r':
+                                        self.disconnect()
+                                        os.system("nohup "+sys.executable+" mokkad >/dev/null 2>&1 &")
+                                        os._exit(0)
+
                                     elif response.lower() == 'help':
-                                        self.output('Moin, holps')
+                                        self.output('Q      Exit shell')
+                                        self.output('R      Restart Daemon')
 
                                     else:
                                         self.output('Unknown command ' + response + '. Use HELP.')
@@ -106,6 +114,10 @@ class IPCIncomingConnection(threading.Thread):
                             self.disconnect()
 
             except Exception as err:
+                try:
+                    self.output('Error:' + err)
+                except:
+                    pass
                 self.conn.close()
                 break
 
