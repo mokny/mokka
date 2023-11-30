@@ -67,6 +67,7 @@ class IPCIncomingConnection(threading.Thread):
                                 self.output('-q                 Quit MOKKA Daemon')
                                 self.output('-s                 Enter Shell')
                                 self.output('-v                 Version')
+                                self.output('-w                 Create Workspace')
                                 self.disconnect()
 
                             # Internal shell
