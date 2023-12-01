@@ -13,9 +13,24 @@ import sys
 import datetime
 import shutil
 import subprocess 
+import tomllib
+import ssl
+import zipfile
+import venv
+from urllib.parse import urlparse
+from urllib.request import urlretrieve
 
 tlock = threading.Lock()
 starttime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+class VarHolder(object):
+    def info():
+        print('Just a dummy')
+sys.modules["varholder"] = VarHolder
+
+import varholder as v
+
+v.modules = {}
 
 class Module(threading.Thread):
     def __init__(self, workspace, ident):  
@@ -25,12 +40,16 @@ class Module(threading.Thread):
         self.output = []
         self.ps = False
         self.process = None
+        self.config = moduleGetConfig(pathModule(workspace, ident))
+        v.modules[self.workspace + '/' + self.moduleident] = self
 
     def run(self):
-        value = 'ping -c 10000 localhost' 
+        cmd = 'bin/python ' + self.config['GENERAL']['exec']
+        value = 'ping -c 10 localhost' 
+        value = cmd
         try:
             os.environ["PYTHONUNBUFFERED"] = "1"
-            self.process = subprocess.Popen(value.split(' '), stdout = subprocess.PIPE, stdin = subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, preexec_fn=os.setsid)#, cwd=pathModule(self.workspace, self.moduleident))
+            self.process = subprocess.Popen(value.split(' '), stdout = subprocess.PIPE, stdin = subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, preexec_fn=os.setsid, cwd=pathModule(self.workspace, self.moduleident))
             self.ps = psutil.Process(self.process.pid)
             print(self.process.pid)
             while True:
@@ -54,6 +73,10 @@ class Module(threading.Thread):
             print(err)
             self.output.append(str('-- END WITH ERR ' + str(err) + ' --'))
             pass
+        
+        with tlock:
+            del v.modules[self.workspace + '/' + self.moduleident]
+
 
 
 
@@ -67,9 +90,12 @@ class IPCServer(threading.Thread):
         address = ('127.0.0.1', self.port)     # family is deduced to be 'AF_INET'
         listener = Listener(address, authkey=str.encode(str(self.secret)))
         while True:
-            c = IPCIncomingConnection(listener.accept())
+            con = listener.accept()
+            c = IPCIncomingConnection(con)
             c.start()
+    
 
+    
 class IPCIncomingConnection(threading.Thread):
     def __init__(self, conn):  
         threading.Thread.__init__(self)
@@ -112,10 +138,10 @@ class IPCIncomingConnection(threading.Thread):
                                 self.output('WORKSPACE CREATE <IDENT>           Create Workspace')
                                 self.output('WORKSPACE REMOVE <IDENT>           Create Workspace')
                                 self.output('WORKSPACE LIST                     Create Workspace')
-                                self.output('MODULE INSTALL LOCAL <WS> <PATH>   Install module from local path')
-                                self.output('MODULE INSTALL GIT <WS> <PATH>     Install module from git')
-                                self.output('MODULE RUN <WS> <IDENT>            Run module')
-                                self.output('MODULE REMOVE <WS> <IDENT>         Remove module')
+                                self.output('INSTALL <WS> <PATH/URL>            Install module from local path')
+                                self.output('RUN <WS> <IDENT>                   Run module')
+                                self.output('REMOVE <WS> <IDENT>                Remove module')
+                                self.output('PS                                 Running modules')
                                 self.disconnect()
                             
                             # Modules
@@ -127,7 +153,36 @@ class IPCIncomingConnection(threading.Thread):
                                             self.output('Running Module...')
                                             m = Module(msg[2], msg[3]).start()
                                             self.disconnect()
-
+                            
+                            # Install Module
+                            elif msg[0].lower() == "install":
+                                if len(msg) == 3:
+                                    moduleInstall(msg[1], msg[2], self)
+                                self.disconnect()
+                            
+                            # Remove Module
+                            elif msg[0].lower() == "remove":
+                                if len(msg) == 3:
+                                    moduleRemove(msg[1], msg[2])
+                                self.disconnect()
+                            
+                            # Run Module
+                            elif msg[0].lower() == "run":
+                                if len(msg) == 3:
+                                    if moduleRun(msg[1], msg[2]):
+                                        self.output('Running')
+                                    else:
+                                        self.output('Not a module')
+                                else:
+                                    self.output('Use RUN <WORKSPACE> <IDENT>')
+                                self.disconnect()
+                            
+                            # List running modules
+                            elif msg[0].lower() == "ps":
+                                for mident in v.modules:
+                                    self.output(mident + ' ' + v.modules[mident].config['GENERAL']['title'])
+                                self.disconnect()
+                            
                             # Workspace
                             elif msg[0].lower() == "workspace" or msg[0].lower() == "ws":
                                 if len(msg) >= 2:
@@ -169,7 +224,8 @@ class IPCIncomingConnection(threading.Thread):
                                         self.output("Workspaces:")
                                         for workspace in os.listdir(pathBase()):
                                             if os.path.isdir(pathWorspace(workspace)):
-                                                self.output(workspace)
+                                                if not workspace.startswith('.'):
+                                                    self.output(workspace)
                                         self.output("")
 
                                     elif msg[1].lower() == "help":
@@ -186,13 +242,13 @@ class IPCIncomingConnection(threading.Thread):
 
                             # Internal shell
                             elif msg[0] == "-s":
-                                self.output(" ___ ___   ___   __  _  __  _   ____ ")
-                                self.output("|   |   | /   \ |  |/ ]|  |/ ] /    |")
-                                self.output("| _   _ ||     ||  ' / |  ' / |  o  |")
-                                self.output("|  \_/  ||  O  ||    \ |    \ |     |")
-                                self.output("|   |   ||     ||     \|     \|  _  |")
-                                self.output("|   |   ||     ||  .  ||  .  ||  |  |")
-                                self.output("|___|___| \___/ |__|\_||__|\_||__|__|")                              
+                                self.output(' ___ ___   ___   __  _  __  _   ____ ')
+                                self.output('|   |   | /   \\ |  |/ ]|  |/ ] /    |')
+                                self.output('| _   _ ||     ||    / |    / |  o  |')
+                                self.output('|  \\_/  ||  O  ||    \\ |    \\ |     |')
+                                self.output('|   |   ||     ||     \\|     \\|  _  |')
+                                self.output('|   |   ||     ||  .  ||  .  ||  |  |')
+                                self.output('|___|___| \\___/ |__|\\_||__|\\_||__|__|')                              
                                 self.output('Multi processing / IPC framework')
                                 self.output('by Till Vennefrohne')
                                 self.output('Daemon startet at ' + str(starttime) + ' / PID: ' + str(os.getpid()))
@@ -250,12 +306,20 @@ class IPCIncomingConnection(threading.Thread):
     def disconnect(self):
         self.conn.close()
 
+def is_url(url):
+    return urlparse(url).scheme in ('http', 'https',)
 
 def pathUser():
     return os.path.expanduser('~')
 
 def pathBase():
     pb = os.path.join(os.path.expanduser('~'), 'mokkabase')
+    if not os.path.isdir(pb):
+        os.mkdir(pb)
+    return pb
+
+def pathTmpDir():
+    pb = os.path.join(pathBase(), '.tmp')
     if not os.path.isdir(pb):
         os.mkdir(pb)
     return pb
@@ -267,6 +331,124 @@ def pathWorspace(workspace):
 def pathModule(workspace, ident):
     pb = os.path.join(os.path.expanduser('~'), 'mokkabase', workspace, ident)
     return pb
+
+def moduleGetConfig(source):
+    with open(os.path.join(os.path.join(source, 'mokka.toml')), "r") as f:
+        tomlraw = f.read()
+    return tomllib.loads(tomlraw)
+
+def moduleExists(workspace, ident):
+    if os.path.isdir(os.path.join(pathWorspace(workspace),ident)):
+        return True
+    return False
+
+def moduleInstall(workspace, source, client = False):
+    if not os.path.isdir(pathWorspace(workspace)):
+        if client: client.output("Workspace " + workspace + ' does not exist')
+        return False
+    
+    tmpdir = False
+
+    if is_url(source):
+        context = ssl._create_unverified_context()
+        if not str(source).lower().endswith('.zip'):
+            if client: client.output('Only ZIP files supported')
+            return False
+        fn = str(uuid.uuid4())
+        try:
+            urlretrieve(source, os.path.join(pathTmpDir(), fn + '.zip'))
+        except:
+            if client: client.output('Unable to download file')
+            return False
+        try:
+            with zipfile.ZipFile(os.path.join(pathTmpDir(), fn + '.zip'), 'r') as zip_ref:
+                zip_ref.extractall(os.path.join(pathTmpDir(), fn))
+        except:
+            if client: client.output('Unable to extract zip file')
+            os.remove(os.path.join(pathTmpDir(), fn + '.zip'))
+            return False
+
+        os.remove(os.path.join(pathTmpDir(), fn + '.zip'))
+        
+        tmpdir = os.path.join(pathTmpDir(), fn)
+        source = tmpdir
+
+    if os.path.isdir(source):
+        if client: client.output('Installing from ' + source)
+        err = moduleHasErrors(source)
+        if err: 
+            if client: client.output(err)
+            if tmpdir: shutil.rmtree(tmpdir)
+        else:
+            if client: client.output('Source check OK.')
+            config = moduleGetConfig(source)
+            if moduleExists(workspace, config['GENERAL']['ident']):
+                if client: client.output('Module already exists')
+                if tmpdir: shutil.rmtree(tmpdir)
+                return False
+            shutil.copytree(source, os.path.join(pathWorspace(workspace), config['GENERAL']['ident'].upper()))
+            if client: client.output('Creating virtual environment...')
+            venv.create(os.path.join(pathWorspace(workspace), config['GENERAL']['ident'].upper()))
+            if client: client.output('Installing PIP...')
+            subprocess.check_call([os.path.join(pathWorspace(workspace), config['GENERAL']['ident'].upper(),'bin','python'), '-m' , 'ensurepip', '--default-pip'])            
+            if 'INSTALL' in config:
+                if 'piplibs' in config['INSTALL']:
+                    for piplib in config['INSTALL']['piplibs']:
+                        if client: client.output('Installing '+piplib+'...')
+                        subprocess.check_call([os.path.join(pathWorspace(workspace), config['GENERAL']['ident'].upper(),'bin','python'), "-m", "pip", "install", piplib])
+            
+            if client: client.output('Module installed')
+            return True
+    else:
+        if client: client.output(source + ' not found.')
+        if tmpdir: shutil.rmtree(tmpdir)
+        return False
+
+def moduleRemove(workspace, ident):
+    if os.path.isdir(os.path.join(pathWorspace(workspace),ident)):
+        shutil.rmtree(os.path.join(pathWorspace(workspace),ident))
+        return True
+    return False
+
+def moduleRun(workspace, ident):
+    if os.path.isdir(os.path.join(pathWorspace(workspace),ident)):
+        Module(workspace, ident).start()
+        return True
+    return False
+
+def moduleHasErrors(source):
+    if os.path.isfile(os.path.join(source, 'mokka.toml')):
+        try:
+            with open(os.path.join(os.path.join(source, 'mokka.toml')), "r") as f:
+                tomlraw = f.read()
+            config = tomllib.loads(tomlraw)
+            configok = False
+            if 'GENERAL' in config:
+                if 'title' in config['GENERAL']:
+                    if 'ident' in config['GENERAL']:
+                        if 'exec' in config['GENERAL']:
+                            configok = True
+                        else:
+                            return "Invalid mokka.toml"    
+                    else:
+                        return "Invalid mokka.toml"    
+                else:
+                    return "Invalid mokka.toml"    
+            else:
+                return "Invalid mokka.toml"
+
+            if configok:
+                if not os.path.isfile(os.path.join(os.path.join(source, config['GENERAL']['exec']))):
+                    return "Exec file is missing."
+                return False
+            
+        except Exception as err:
+            return "Invalid mokka.toml" + os.path.join(os.path.join(source, 'mokka.toml')) + str(err)
+    else:
+        return "mokka.toml missing"
+    return False
+
+
 
 def setup():
     # Kill older instances by name
@@ -305,9 +487,14 @@ def setup():
     return port, secret
 
 def init():
+    ssl._create_default_https_context = ssl._create_unverified_context
     port, secret = setup()
     print("Port " + str(port))
     print("Port " + str(secret))
-    server = IPCServer(port, secret).start()
+    server = IPCServer(port, secret)
+    server.start()
+
+    while server.is_alive():
+        time.sleep(0.1)
 
 init()
