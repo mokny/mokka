@@ -1,136 +1,90 @@
 #!/usr/bin/python3
-
-import os, sys, getopt
-import time
-import subprocess
-import shutil
-import signal
-import logging
 import threading
-import psutil
-import tomllib
+import time
+import uuid
+import random
+from multiprocessing.connection import Listener, Client
+from contextlib import closing
+import socket
+import os
+import sys
 
-# Change to program path as working directory
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
+tlock = threading.Lock()
 
-# Insert own lib path
-sys.path.insert(0, './libraries')
+class IPCOutgoingConnection(threading.Thread):
+    def __init__(self, conn):  
+        threading.Thread.__init__(self)
+        self.conn = conn
 
-# Custom libraries
-import m_vars as v
-import m_commandline as opt
-import m_path as pt
-import m_pid as pid
-import m_ipc as ipc
-import m_handlers as handlers
-import m_module as m
+    def run(self):
+        msg = ''
+        while True:
+            try:
+                msg = self.conn.recv()
+                with tlock:
+                    msgHandler(self, msg)
+            except Exception as err:
+                break
 
+    def send(self, data):
+        self.conn.send(data)
 
-#Global Vars
-v.client = False
-v.server = False
-v.modules = {
-    'DEFAULT': {}
-}
-v.workspace = 'DEFAULT'
+    def disconnect(self):
+        self.conn.close()
 
-# Handle Ctrl-C Events
-def sighandler(signum, frame):
-    if v.client:
-        os._exit(0)
-    elif not v.client and not v.server:
-        os._exit(1)
+def msgHandler(con, msg):
+    if isinstance(msg, dict):
+        if 'method' in msg:
+            method = msg['method']
+            if 'payload' in msg:
+                payload = msg['payload']
 
-signal.signal(signal.SIGINT, sighandler)
+                if method == 'OUTPUT':
+                    print(payload)
+                    
+                elif method == 'INPUT':
+                    con.send(input(payload))
+                    
+    pass
 
-
-#Main
-def main():
-
-    if not pt.hasWritePermission(pt.pathAbsolute() + '/workspaces'):
-        print("WORKSPACES directory is not writable. Exiting.")
-        os._exit(1)
+def connect(port, secret):
     try:
-        os.mkdir(pt.pathAbsolute() + '/workspaces/DEFAULT')
+        address = ('127.0.0.1', port)
+        conn = Client(address, authkey=str.encode(str(secret)))
+        client = IPCOutgoingConnection(conn)
+        client.start()
+        return client
     except:
-        pass
+        return False
 
-    # Kill old instances
-    if opt.getMethod() == "SHUTDOWN":
-        pid.kill()
-        pid.removefile()
-        ipc.removeFiles()
-        os._exit(0)
 
-    # Start the service after killing old instances
-    if opt.getMethod() == "RUNSERVICE":
-        pid.kill()
-        pid.write()
-        # Create connect files
-        ipc.createSecret(pt.pathAbsolute() + '/workspaces/.ipctoken')
-        ipc.createPort(pt.pathAbsolute() + '/workspaces/.ipcport')
-        # Start server
-        v.server = ipc.startServer(handlers.serverHandler, ipc.getPort(pt.pathAbsolute() + '/workspaces/.ipcport'), ipc.getSecret(pt.pathAbsolute() + '/workspaces/.ipctoken'))
 
-    #Other Methods given
-    else:
-        #Start the client and try to connect to service
-        if os.path.isfile(pt.pathAbsolute() + '/workspaces/.ipcport') and os.path.isfile(pt.pathAbsolute() + '/workspaces/.ipctoken'):
-            v.client = ipc.startClient(handlers.clientHandler, ipc.getPort(pt.pathAbsolute() + '/workspaces/.ipcport'), ipc.getSecret(pt.pathAbsolute() + '/workspaces/.ipctoken'))
+def init():
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    i = 0
+    while True:
+        if i > 20:
+            print("Could not start daemon.")
+            break
+        try:
+            cwd = os.path.join(os.path.expanduser('~'), 'mokkabase')
+            f = open(os.path.join(cwd,'.port'), "r")
+            port = int(f.read())
 
-        if not pid.check() and not v.client: #Service not available, so restart it with nohup
-            if shutil.which('nohup') is not None:
-                pid.removefile()
-                os.system("nohup "+sys.executable+" "+pt.pathScript() + " RUNSERVICE > /dev/null &")
+            f = open(os.path.join(cwd,'.secret'), "r")
+            secret = str(f.read())
+
+            params = sys.argv[1:]
+            client = connect(port, secret)
+
+            if client:
+                client.send(params)
+                break
             else:
-                print("nohup is required. Exiting")
-                os._exit(1)
-
-            # Now try to connect
-            retries = 0
-            while retries < 10:
-                time.sleep(0.2)
-                v.client = ipc.startClient(handlers.clientHandler, ipc.getPort(pt.pathAbsolute() + '/workspaces/.ipcport'), ipc.getSecret(pt.pathAbsolute() + '/workspaces/.ipctoken'))
-                if v.client: 
-                    break
-                retries += 1
-        
-        # Connection error?
-        if not v.client:
-            print("ERROR: Service not reachable")
-            os._exit(1)
-
-        # Main proc
-    
-    # If process is Server
-    if v.server:
-        pass
-
-    # If process is Client
-    elif v.client:
-        
-        if not opt.getMethod():
-            print('Use mokka help')
-            os._exit(1)
-            pass
-        elif opt.getMethod() == 'CONSOLE':
-            handlers.protreq(v.client, 'COMMANDLINE', opt.commandlineoptions)
-            s = ''
-            while True:
-                s = input()
-                if s.upper() == "EXIT" or s.upper() == "Q":
-                    os._exit(0)
-                elif s.upper() == "SHUTDOWN":
-                    handlers.protreq(v.client, 'INPUT', s)
-                    time.sleep(0.2)
-                    pid.removefile()
-                    os._exit(0)
-                handlers.protreq(v.client, 'INPUT', s)
-        else:
-            handlers.protreq(v.client, 'COMMANDLINE', opt.commandlineoptions)
-            os._exit(0)
-
-
-
-if __name__ == "__main__":        
-    main()
+                os.system("nohup "+sys.executable+" mokkad >/dev/null 2>&1 &")
+            time.sleep(0.2)
+        except:
+            os.system("nohup "+sys.executable+" mokkad >/dev/null 2>&1 &")
+            time.sleep(0.2)
+        i += 1
+init()
