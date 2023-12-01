@@ -114,9 +114,30 @@ class APIServer(BaseHTTPRequestHandler):
                     for m in v.modules:
                         response['MODULES'][m] = {
                             'ident': v.modules[m].moduleident,
-                            'workspace': v.modules[m].workspace
+                            'workspace': v.modules[m].workspace,
+                            'pid': v.modules[m].process.pid,
+                            'data': {
+                                'cpu_time': v.modules[m].ps.cpu_times().system,
+                                'cpu_percent': v.modules[m].ps.cpu_percent() / psutil.cpu_count(),
+                                'status': v.modules[m].ps.status(),
+                            }
                         }
-                self.out(response)
+                    self.out(response)
+                elif pt[2].lower() == 'status':
+                    self.headers_okay()
+                    response['API'] = {
+                        'VERSION': '1.0',
+                        'REQUEST': self.path,
+                        'TIMESTAMP': time.time()
+                    }
+                    response['STATUS'] = {
+                        'STARTED': starttime,
+                        'VERSION': '0.0.1'
+                    }
+                    self.out(response)
+                else:
+                    self.headers_badrequest()
+                
             else:
                 self.headers_badrequest()
         except:
