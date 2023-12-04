@@ -63,7 +63,7 @@ def init():
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
     i = 0
     while True:
-        if i > 20:
+        if i > 10:
             print("Could not start daemon.")
             break
         try:
@@ -83,10 +83,10 @@ def init():
             else:
                 print("Starting Daemon. Method 1")
                 os.system("nohup "+sys.executable+" mokkad >/dev/null 2>&1 &")
-            time.sleep(0.2)
+                time.sleep(1)
         except:
             print("Starting Daemon. Method 2")
             os.system("nohup "+sys.executable+" mokkad >/dev/null 2>&1 &")
-            time.sleep(0.2)
+            time.sleep(1)
         i += 1
 init()

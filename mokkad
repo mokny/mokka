@@ -538,7 +538,7 @@ def setup():
     # Kill older instances by name
     pid = os.getpid()
     for p in psutil.process_iter():
-        if p.name().lower() == 'python':
+        if p.name().lower() == 'python' or p.name().lower() == sys.executable.lower():
             cmdl = p.cmdline()
             try:
                 if cmdl[0].lower().endswith('/python'):
