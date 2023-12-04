@@ -39,8 +39,8 @@ v.apiserver = False
 class Module(threading.Thread):
     def __init__(self, workspace, ident):  
         threading.Thread.__init__(self)
-        self.workspace = workspace
-        self.moduleident = ident
+        self.workspace = workspace.upper()
+        self.moduleident = ident.upper()
         self.output = []
         self.ps = False
         self.process = None
@@ -72,6 +72,7 @@ class Module(threading.Thread):
             self.output.append('--END--')
         except Exception as err:
             self.output.append(str('-- END WITH ERR ' + str(err) + ' --'))
+            print(err)
             pass
         
         with tlock:
