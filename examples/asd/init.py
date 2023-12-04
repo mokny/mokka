@@ -2,6 +2,16 @@ import time
 import os
 import sys
 import uuid
+import mokkalib as mokka
+
+mokka.init()
+result = mokka.request("MODINIT","fgh")
+print(result)
+
+def eventHandler(msg):
+    print("--->  " + str(msg))
+
+mokka.setEventHandler(eventHandler)
 
 def in_venv():
     return sys.prefix != sys.base_prefix

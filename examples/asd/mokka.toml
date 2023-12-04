@@ -6,6 +6,6 @@ python = "bin/python"
 venv = true
 
 [INSTALL]
-piplibs = [
-    'GitPython'
-]
+#piplibs = [
+#    'GitPython'
+#]

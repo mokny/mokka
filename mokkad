@@ -260,6 +260,43 @@ class IPCIncomingConnection(threading.Thread):
                                 moduleKillAll()
                                 self.disconnect()
 
+                            #frida
+                            elif msg[0].lower() == "frida":
+                                self.output('▓▓▒▒░▒▒▒▓▓▓░░░░░░░░░░░░░▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒░░░░░░░░▒▒▒▒▒▒▒▒▒▒▓▒▒▓▒▒▒▒▒▒▓▓███▓▓▓▓▓▒▓▓▓▓▓▓▓▓▒▓▓')
+                                self.output('▓▒▒▒▒▒░▒▒▒▓▒░░░░░░░░░▒▒▓▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒░▒▒░░░▒▒░▒▒▒▒▒▒▒▒▒▒▒▒▓▒▒▒▒▒▒▓██████▓▓▒▓▓▓▓████▓▓▓▒')
+                                self.output('▓▓▓▓▒▒▒▒▓▒▒░░░▒░░░░░▓▓██▓▓██▓▓▓▒▒▒▒▒▒▒▒▒▒▒░░░▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▒▒▒▒▒▒▒▓██████▓▓▓▓▓████████▓▓')
+                                self.output('▓▓▓▓▒▓▓▓▓▓▒░░░▒░░░▒▓▓▓▓▓▓▓▓███████▓▓▓▓▒▒▒▒▓▓▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓███████▓▒▓█████████▓▒▒')
+                                self.output('▓▒▒▓▓▒▓▓▒▒░░░░░░▒▓▓██▓▓▓▓▓▓▓▓▓████████▓▓█████████▓▓▒▒▒▒▒▒▒▒▒▓▒▒▒▒▓▓███████▓▓██████████▓▓▓▓')
+                                self.output('▒▒▓▓▓▓▓▓▓▒░░░░░▒▓██████▓▓▓▓▓███████████████▓▓▓████████▓▓▓▓▓▓▓▓▒▒▓▓██████████████████▓▓▓▓▓▓')
+                                self.output('▓▓▓▓▓▓▓▓▓▒░░░▒▒▓█▓███▓▓▓▓▓██████████████▓▒▒░░▒▒▓▓▓███████████████████████████████▓▓▓▓▓▓▓▓▓')
+                                self.output('▓▓▓▓▓▓▓▓▓░░░▒▒▓▓▓▓███████████████████████▓▓▓▓████████████████████████████████▓▓▓▓▓▓▓▓▓▓▓▓▓')
+                                self.output('▓▒▓▓▓▓▓▓▒░░░▓▓▓▓▓██████████████████████████████████████████████████████████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓')
+                                self.output('▓▓▓▓▓▓▓▓▒░░▒▓▓█▓▓██████▓▓▓▓████▓▓█████████████████████████████████████████████████▓██▓▓▓▓▓')
+                                self.output('▓▓▓▓▓▓▓▓▒░░░▓▓▓▓▓███▓▓▓▓▓▓███▓▒▓▓▓▓▓▓█████████████████████████████████████████████████████')
+                                self.output('▒▒▒▓▓▓▓▓░░░▒▓▓▓▓▓▓▓▓▓▓▓▓███████████▓██████████████████████████████████████████████████████')
+                                self.output('▒▒▒▓▓▓▓▒░░▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██████▓▓▓██████▓▓▓▓▓▓▓▓▓▓▒███████████████████████████████████▓')
+                                self.output('▓▓▓▓▓▓▓░░░▓█▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓███▓▓▓▓▓▓▓▓▓█▓▓▓▓▓▓▓▓▓▓▓▒▓███████████████████████████████▓█▓▒▓')
+                                self.output('▓▓▓▓▓▓▓░░░▓███▓▓▓▓▓▓▓▓████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓█▓▓▓▓▓▓▓▓██████████████████▓████▓▓▓▓█▓▓█████')
+                                self.output('▒▓▓▓█▓▓░░▒▓▓▓▓▓▓▓▓▓▓▓▓█▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓█████████████████████▓▓▓▓▓██████████████')
+                                self.output('▒▒▒▓▓▓▒░░▒▓▓███▓▓▓▓▓▓▓▓██▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██████▓▓▓▓▓████████▓▓▓██████████████████████▓▓███▓')
+                                self.output('▒▒▒▒▓▒▒░░▒▒█▓▓▓▓▓▓▓▓▓▓▓█▓▓▓▓▓▓▓███▓▓▓▓▓████████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██████████████████████▒▒▓█▓█')
+                                self.output('▒▒▒▒▒▓▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓█████▓▓▓█████████████▓████▓██████████████████████████▓▓▓████')
+                                self.output('▒▒▒▒░▒▒▓▓▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓███▓███▓▒▓▓▓▓▓▓▓███████████████████████████████████████████▓████')
+                                self.output('▒▒▒░░░▒▒▒▒▒▓█▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██▒▓▓▓▒▓▓██████████████████████████████████████████████▓▓▓▓▓▓')
+                                self.output('▒▒▒▒░░▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓████▓▓▒▓████████████████████████████████████████████████▓▓▓▓▓')
+                                self.output('▒▒▒▒▒░▒▒▒▒▓▒▒▓▓█▓▓▓▓▓▓▓▓█▓▓▓▓████████████████████████████████████████████████████████▓▓▓▓▓')
+                                self.output('▒▒▒▒▒▒▒▒▒▒▓▒▒▓█████▓██████████████████████████████████████████████████████████████████████')
+                                self.output('▒▒▒▒▒▒▒░░▒▒▒▒▒▓███████████████████████████████████████████████████████████████████████████')
+                                self.output('▒▒▒▒▒▒░▒░▒▒▒░▒▒▓▓▓▓████████████████▓▓▓▓▓▓▓████████████████████████████████████████████████')
+                                self.output('▒▒▒▒▒▒░░▒░░░▒▒▒▒▒▓▓▓█████▓▓▓▓▓▓▓▓▓▓▓██████████████████████████████████████████████████████')
+                                self.output('▒▒▒▒▒░░▒░░░░▒▒▒▒▒▒▓███████▓▓▓▓▓▓▓▓█████████████████████████████████████████████████████▓▓▓')
+                                self.output('▓▓▒▒▒▒▓░░░░▒▒▒▒▒▒▒░▓▓█████▓▓▓▓▓▓▓▓▓▓███▓▓▓▓▓▓▓▓████▓█████████████████████▓▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒')
+                                self.output('▓▒▒▒▒▓▓▒▒░░▒▓▒░░▒░▒▓▓▓█████▓▓▓▓▓▓▓▓█▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓████████████████▓▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒')
+                                self.output('▒▒▒▒▒▓▓▒▒▓▒▒▓▓▒░▒▒▒▓▓▓▒▓██████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▓▓▒▒▒▒▒▒▒▒▓▒▓▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓▒')
+                                self.output('▒▒▒▒▒▓▓▒▒▒▒▒▓██▒▒▒▒▒▒▒▒▒▓█████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▒▒▒▒▒▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓')
+                                self.output('▓▒▒░▒▒▒▒▒▒▓▒▓█▓▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▒▒▒▒▒')
+                                self.disconnect()
+                                
                             # Workspace
                             elif msg[0].lower() == "workspace" or msg[0].lower() == "ws":
                                 if len(msg) >= 2:
@@ -360,6 +397,29 @@ class IPCIncomingConnection(threading.Thread):
                             print(msg)
                             self.output('Unknown command. Use -h')
                             self.disconnect()
+                    elif isinstance(msg, dict):
+                        if 'type' in msg:
+                            type = msg['type']
+                            if 'method' in msg:
+                                method = msg['method']
+                                if 'payload' in msg:
+                                    payload = msg['payload']
+                                    if type == 'REQUEST':
+                                        if method == 'MODINIT':
+                                            self.ismodule = True
+                                            self.module = payload
+                                            self.send('MODINIT', 'SINGLEREQUEST')
+
+                                        elif method == 'MODPIPE':
+                                            self.ismodule = True
+                                            self.module = payload
+                                            self.send('MODINIT', 'PIPE')
+
+                    else:
+                        pass
+                        #print("Nolist " + str(msg))
+                        #self.sendraw("Your msg; " + str(msg))
+
 
             except Exception as err:
                 print(err)
@@ -380,6 +440,9 @@ class IPCIncomingConnection(threading.Thread):
     def send(self, method, payload):
         self.conn.send({'method': method, 'payload': payload})
 
+    def sendraw(self, message):
+        self.conn.send(message)
+        
     def disconnect(self):
         self.conn.close()
 
@@ -471,6 +534,7 @@ def moduleInstall(workspace, source, client = False):
                 if tmpdir: shutil.rmtree(tmpdir)
                 return False
             shutil.copytree(source, os.path.join(pathWorspace(workspace.upper()), config['GENERAL']['ident'].upper()))
+            shutil.copy(os.path.join(pathMokka(),'shared','mokkalib.py'), os.path.join(pathWorspace(workspace.upper()), config['GENERAL']['ident'].upper(), 'mokkalib.py'))
             if client: client.output('Creating virtual environment...')
             venv.create(os.path.join(pathWorspace(workspace.upper()), config['GENERAL']['ident'].upper()))
             if client: client.output('Installing PIP...')
@@ -541,7 +605,9 @@ def moduleHasErrors(source):
         return "mokka.toml missing"
     return False
 
-
+def eventTrigger(method, payload):
+    for ident in v.modules:
+        pass
 
 def setup():
     # Kill older instances by name
