@@ -81,9 +81,11 @@ def init():
                 client.send(params)
                 break
             else:
+                print("Starting Daemon. Method 1")
                 os.system("nohup "+sys.executable+" mokkad >/dev/null 2>&1 &")
             time.sleep(0.2)
         except:
+            print("Starting Daemon. Method 2")
             os.system("nohup "+sys.executable+" mokkad >/dev/null 2>&1 &")
             time.sleep(0.2)
         i += 1

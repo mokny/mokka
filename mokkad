@@ -578,12 +578,14 @@ def init():
     server = IPCServer(port, secret)
     server.start()
 
-    print("API-Server: http://127.0.0.1:45662/api")
-    v.apiserver = HTTPServer(('127.0.0.1', 45662), APIServer)
 
     try:
+        print("API-Server: http://127.0.0.1:45662/api")
+        v.apiserver = HTTPServer(('127.0.0.1', 45662), APIServer)
         v.apiserver.serve_forever()
     except:
+        print("API-Server could not be started.")
+        os._exit(1)
         pass
 
     while server.is_alive():
