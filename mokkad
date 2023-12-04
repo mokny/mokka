@@ -206,6 +206,7 @@ class IPCIncomingConnection(threading.Thread):
                                 self.output('INSTALL <WS> <PATH/URL>            Install module from local path')
                                 self.output('RUN <WS> <IDENT>                   Run module')
                                 self.output('REMOVE <WS> <IDENT>                Remove module')
+                                self.output('LOG <WS> <IDENT>                   Get module logs')
                                 self.output('PS                                 Running modules')
                                 self.disconnect()
                             
@@ -239,6 +240,13 @@ class IPCIncomingConnection(threading.Thread):
                                     self.output(mident + ' ' + v.modules[mident].config['GENERAL']['title'])
                                 self.disconnect()
                             
+                            elif msg[0].lower() == "log":
+                                if len(msg) == 3:
+                                    log = moduleGetLog(msg[1], msg[2])
+                                    for i in log:
+                                        self.output(i)
+                                self.disconnect()
+
                             # Workspace
                             elif msg[0].lower() == "workspace" or msg[0].lower() == "ws":
                                 if len(msg) >= 2:
@@ -471,6 +479,11 @@ def moduleRun(workspace, ident):
         return True
     return False
 
+def moduleGetLog(workspace, ident):
+    mident = workspace.upper() + '/' + ident.upper()
+    if mident in v.modules:
+        return v.modules[mident].output
+    
 def moduleHasErrors(source):
     if os.path.isfile(os.path.join(source, 'mokka.toml')):
         try:
