@@ -25,6 +25,7 @@ from urllib.request import urlretrieve
 
 tlock = threading.Lock()
 starttime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+mainconfig = {}
 
 class VarHolder(object):
     def info():
@@ -385,6 +386,14 @@ class IPCIncomingConnection(threading.Thread):
 def is_url(url):
     return urlparse(url).scheme in ('http', 'https',)
 
+def loadConfig():
+    with open(os.path.join(os.path.join(pathMokka(), 'config', 'config.toml')), "r") as f:
+        tomlraw = f.read()
+    return tomllib.loads(tomlraw)
+
+def pathMokka():
+    return os.path.dirname(os.path.abspath(__file__))
+
 def pathUser():
     return os.path.expanduser('~')
 
@@ -571,6 +580,9 @@ def setup():
     return port, secret
 
 def init():
+    global mainconfig
+    mainconfig = loadConfig()
+
     ssl._create_default_https_context = ssl._create_unverified_context
     port, secret = setup()
     print("IPC-Port: " + str(port))
@@ -578,15 +590,15 @@ def init():
     server = IPCServer(port, secret)
     server.start()
 
-
-    try:
-        print("API-Server: http://127.0.0.1:45662/api")
-        v.apiserver = HTTPServer(('127.0.0.1', 45662), APIServer)
-        v.apiserver.serve_forever()
-    except:
-        print("API-Server could not be started.")
-        os._exit(1)
-        pass
+    if mainconfig['API']['enabled']:
+        try:
+            v.apiserver = HTTPServer((mainconfig['API']['bind'], mainconfig['API']['port']), APIServer)
+            print("API-Server: http://" + mainconfig['API']['bind']+ ":"+str(mainconfig['API']['port'])+"/api")
+            v.apiserver.serve_forever()
+        except:
+            print("API-Server could not be started.")
+            os._exit(1)
+            pass
 
     while server.is_alive():
         time.sleep(0.1)
