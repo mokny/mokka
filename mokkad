@@ -47,6 +47,10 @@ class Module(threading.Thread):
         self.config = moduleGetConfig(pathModule(workspace, ident))
         v.modules[self.workspace + '/' + self.moduleident] = self
 
+    def kill(self):
+        self.process.kill()
+        pass
+
     def run(self):
         cmd = 'bin/python ' + self.config['GENERAL']['exec']
         value = 'ping -c 10 localhost' 
@@ -207,6 +211,8 @@ class IPCIncomingConnection(threading.Thread):
                                 self.output('RUN <WS> <IDENT>                   Run module')
                                 self.output('REMOVE <WS> <IDENT>                Remove module')
                                 self.output('LOG <WS> <IDENT>                   Get module logs')
+                                self.output('KILL <WS> <IDENT>                  Kill a module')
+                                self.output('KILLALL                            Kill all running modules')
                                 self.output('PS                                 Running modules')
                                 self.disconnect()
                             
@@ -240,11 +246,17 @@ class IPCIncomingConnection(threading.Thread):
                                     self.output(mident + ' ' + v.modules[mident].config['GENERAL']['title'])
                                 self.disconnect()
                             
+                            # Get module logs
                             elif msg[0].lower() == "log":
                                 if len(msg) == 3:
                                     log = moduleGetLog(msg[1], msg[2])
                                     for i in log:
                                         self.output(i)
+                                self.disconnect()
+
+                            # Kill all modules
+                            elif msg[0].lower() == "killall":
+                                moduleKillAll()
                                 self.disconnect()
 
                             # Workspace
@@ -483,7 +495,11 @@ def moduleGetLog(workspace, ident):
     mident = workspace.upper() + '/' + ident.upper()
     if mident in v.modules:
         return v.modules[mident].output
-    
+
+def moduleKillAll():
+    for ident in v.modules:
+        v.modules[ident].kill()
+
 def moduleHasErrors(source):
     if os.path.isfile(os.path.join(source, 'mokka.toml')):
         try:
