@@ -445,7 +445,6 @@ class IPCIncomingConnection(threading.Thread):
                                                 v.pids[self.pid].eventpipe = self
                                             self.send('MODINIT', 'PIPE')
 
-
                                         elif method == 'GLOBALEVENT':
                                             self.ismodule = True
                                             self.module = payload
