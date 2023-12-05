@@ -66,7 +66,7 @@ def request(method, payload):
     return False
 
 def triggerGlobalEvent(message):
-    request('EVENT', message)
+    request('GLOBALEVENT', message)
 
 def setEventHandler(evh):
     global client
