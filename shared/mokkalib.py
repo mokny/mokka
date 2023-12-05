@@ -37,7 +37,7 @@ class IPCOutgoingConnection(threading.Thread):
                 break
 
     def initConnection(self):
-        self.send({'type': 'REQUEST', 'mod': config['GENERAL']['ident'].upper(), 'method': 'MODPIPE', 'payload': 'MY'})
+        self.send({'type': 'REQUEST', 'pid': 'p'+str(os.getpid()), 'method': 'MODPIPE', 'payload': 'MY'})
 
     def send(self, data):
         self.conn.send(data)
@@ -59,11 +59,14 @@ def request(method, payload):
     address = ('127.0.0.1', port)
     con = Client(address, authkey=str.encode(str(secret)))
     if con:
-        con.send({'type': 'REQUEST', 'mod': config['GENERAL']['ident'].upper(), 'method': method, 'payload': payload})
+        con.send({'type': 'REQUEST', 'pid': 'p'+str(os.getpid()), 'method': method, 'payload': payload})
         msg = con.recv()
         con.close()
         return msg
     return False
+
+def triggerGlobalEvent(message):
+    request('EVENT', message)
 
 def setEventHandler(evh):
     global client

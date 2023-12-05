@@ -12,6 +12,7 @@ def eventHandler(msg):
     print("--->  " + str(msg))
 
 mokka.setEventHandler(eventHandler)
+mokka.triggerGlobalEvent('Moinsen')
 
 def in_venv():
     return sys.prefix != sys.base_prefix

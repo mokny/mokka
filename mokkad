@@ -35,6 +35,8 @@ sys.modules["varholder"] = VarHolder
 import varholder as v
 
 v.modules = {}
+v.pids = {}
+v.eventreceivers = {}
 v.apiserver = False
 
 class Module(threading.Thread):
@@ -46,6 +48,8 @@ class Module(threading.Thread):
         self.ps = False
         self.process = None
         self.config = moduleGetConfig(pathModule(workspace, ident))
+        self.eventpipe = False
+        self.pid = False
         v.modules[self.workspace + '/' + self.moduleident] = self
 
     def kill(self):
@@ -58,8 +62,13 @@ class Module(threading.Thread):
         value = cmd
         try:
             os.environ["PYTHONUNBUFFERED"] = "1"
+
             self.process = subprocess.Popen(value.split(' '), stdout = subprocess.PIPE, stdin = subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, preexec_fn=os.setsid, cwd=pathModule(self.workspace, self.moduleident))
             self.ps = psutil.Process(self.process.pid)
+            self.pid = self.process.pid
+
+            v.pids['p'+str(self.pid)] = self
+
             while True:
                 line = self.process.stdout.readline()
                 self.process.stdout.flush()
@@ -82,6 +91,7 @@ class Module(threading.Thread):
         
         with tlock:
             del v.modules[self.workspace + '/' + self.moduleident]
+            del v.pids['p'+str(self.pid)] 
 
 
 class APIServer(BaseHTTPRequestHandler):
@@ -173,7 +183,8 @@ class IPCIncomingConnection(threading.Thread):
         self.workspace = 'DEFAULT'
         self.ismodule = False
         self.module = False
-        
+        self.pid = False
+
     def run(self):
         msg = ''
         while True:
@@ -215,6 +226,8 @@ class IPCIncomingConnection(threading.Thread):
                                 self.output('KILL <WS> <IDENT>                  Kill a module')
                                 self.output('KILLALL                            Kill all running modules')
                                 self.output('PS                                 Running modules')
+                                self.output('EVENT                              Trigger event')
+                                self.output('EVENTPIPES                         List all eventpipes')
                                 self.disconnect()
                             
                            
@@ -244,7 +257,7 @@ class IPCIncomingConnection(threading.Thread):
                             # List running modules
                             elif msg[0].lower() == "ps":
                                 for mident in v.modules:
-                                    self.output(mident + ' ' + v.modules[mident].config['GENERAL']['title'])
+                                    self.output(mident + ' ' + v.modules[mident].config['GENERAL']['title'] + ' ' + str(v.modules[mident].process.pid))
                                 self.disconnect()
                             
                             # Get module logs
@@ -253,6 +266,19 @@ class IPCIncomingConnection(threading.Thread):
                                     log = moduleGetLog(msg[1], msg[2])
                                     for i in log:
                                         self.output(i)
+                                self.disconnect()
+
+                            # Trigger event
+                            elif msg[0].lower() == "event":
+                                eventTrigger('blaaaa', 'bluuub')
+                                self.disconnect()
+
+                            # Eventpipes
+                            elif msg[0].lower() == "eventpipes":
+                                for pid in v.pids:
+                                    if v.pids[pid].eventpipe:
+                                        self.output(str(pid) + ' ' + str(v.pids[pid].workspace+ ' ' + str(v.pids[pid].moduleident)))
+
                                 self.disconnect()
 
                             # Kill all modules
@@ -408,12 +434,24 @@ class IPCIncomingConnection(threading.Thread):
                                         if method == 'MODINIT':
                                             self.ismodule = True
                                             self.module = payload
+                                            self.pid = msg['pid']
                                             self.send('MODINIT', 'SINGLEREQUEST')
 
                                         elif method == 'MODPIPE':
                                             self.ismodule = True
                                             self.module = payload
+                                            self.pid = msg['pid']
+                                            if self.pid in v.pids:
+                                                v.pids[self.pid].eventpipe = self
                                             self.send('MODINIT', 'PIPE')
+
+
+                                        elif method == 'EVENT':
+                                            self.ismodule = True
+                                            self.module = payload
+                                            self.pid = msg['pid']
+                                            eventTrigger('GLOBALEVENT',payload)
+                                            self.send('MODREQ', 'OK')
 
                     else:
                         pass
@@ -606,7 +644,9 @@ def moduleHasErrors(source):
     return False
 
 def eventTrigger(method, payload):
-    for ident in v.modules:
+    for pid in v.pids:
+        if v.pids[pid].eventpipe:
+            v.pids[pid].eventpipe.send(method, payload)
         pass
 
 def setup():
