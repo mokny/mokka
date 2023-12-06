@@ -62,6 +62,27 @@ def getVersion():
     res = request('VERSION', False)
     return {'DAEMON': res['payload'], 'LIB': VERSION}
 
+def getWorkspace():
+    res = request('GETWORKSPACE', True)
+    return res['payload']
+
+
+def runModule(module, workspace = False):
+    res = request('RUN', {'workspace': workspace, 'module': module})
+    return res['payload']
+
+def moduleExists(module, workspace = False):
+    res = request('MODULEEXISTS', {'workspace': workspace, 'module': module})
+    return res['payload']
+
+def install(module, workspace = False):
+    res = request('INSTALL', {'workspace': workspace, 'module': module})
+    return res['payload']
+
+def remove(module, workspace = False):
+    res = request('REMOVE', {'workspace': workspace, 'module': module})
+    return res['payload']
+
 def request(method, payload):
     global secret, port, config, initialized
     address = ('127.0.0.1', port)

@@ -440,8 +440,43 @@ class IPCIncomingConnection(threading.Thread):
                                             self.pid = msg['pid']
                                             self.send('MODINIT', 'SINGLEREQUEST')
 
-                                        if method == 'VERSION':
+                                        elif method == 'VERSION':
                                             self.send('VERSION', VERSION)
+                                        
+                                        elif method == 'RUN':
+                                            if not payload['workspace']:
+                                                payload['workspace'] = v.pids[msg['pid']].workspace
+                                            if moduleRun(payload['workspace'], payload['module']):
+                                                self.send('RUN', True)
+                                            else:
+                                                self.send('RUN', False)
+
+                                        elif method == 'GETWORKSPACE':
+                                            self.send('GETWORKSPACE', v.pids[msg['pid']].workspace)
+
+                                        elif method == 'MODULEEXISTS':
+                                            if not payload['workspace']:
+                                                payload['workspace'] = v.pids[msg['pid']].workspace
+                                            if moduleExists(payload['workspace'], payload['module']):
+                                                self.send('MODULEEXISTS', True)
+                                            else:
+                                                self.send('MODULEEXISTS', False)
+
+                                        elif method == 'INSTALL':
+                                            if not payload['workspace']:
+                                                payload['workspace'] = v.pids[msg['pid']].workspace
+                                            if moduleInstall(payload['workspace'], payload['module']):
+                                                self.send('INSTALL', True)
+                                            else:
+                                                self.send('INSTALL', False)
+
+                                        elif method == 'REMOVE':
+                                            if not payload['workspace']:
+                                                payload['workspace'] = v.pids[msg['pid']].workspace
+                                            if moduleRemove(payload['workspace'], payload['module']):
+                                                self.send('REMOVE', True)
+                                            else:
+                                                self.send('REMOVE', False)
 
                                         elif method == 'GLOBALEVENT':
                                             self.ismodule = True
@@ -601,6 +636,11 @@ def moduleInstall(workspace, source, client = False):
         if client: client.output(source + ' not found.')
         if tmpdir: shutil.rmtree(tmpdir)
         return False
+
+def moduleExists(workspace, ident):
+    if os.path.isdir(os.path.join(pathWorspace(workspace.upper()),ident.upper())):
+        return True
+    return False
 
 def moduleRemove(workspace, ident):
     if os.path.isdir(os.path.join(pathWorspace(workspace.upper()),ident.upper())):
