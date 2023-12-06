@@ -23,6 +23,8 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
 from urllib.request import urlretrieve
 
+VERSION = ['0','1','1']
+
 tlock = threading.Lock()
 starttime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 mainconfig = {}
@@ -207,7 +209,7 @@ class IPCIncomingConnection(threading.Thread):
 
                             # Version
                             if msg[0] == "-v":
-                                self.output("0.0.1 b1")
+                                self.output('.'.join(VERSION))
                                 self.disconnect()
 
                             # Help
@@ -257,7 +259,7 @@ class IPCIncomingConnection(threading.Thread):
                             # List running modules
                             elif msg[0].lower() == "ps":
                                 for mident in v.modules:
-                                    self.output(mident + ' ' + v.modules[mident].config['GENERAL']['title'] + ' ' + str(v.modules[mident].process.pid))
+                                    self.output(mident + ' ' + v.modules[mident].config['GENERAL']['title'] + ' ' + str(v.modules[mident].process.pid) + ' ' + str(len(v.modules[mident].output)))
                                 self.disconnect()
                             
                             # Get module logs
@@ -270,7 +272,7 @@ class IPCIncomingConnection(threading.Thread):
 
                             # Trigger event
                             elif msg[0].lower() == "event":
-                                eventTrigger('blaaaa', 'bluuub')
+                                eventTrigger('blaaaa', False, 'bluuub')
                                 self.disconnect()
 
                             # Eventpipes
@@ -390,6 +392,7 @@ class IPCIncomingConnection(threading.Thread):
                                 self.output('|   |   ||     ||  .  ||  .  ||  |  |')
                                 self.output('|___|___| \\___/ |__|\\_||__|\\_||__|__|')                              
                                 self.output('Multi processing / IPC framework')
+                                self.output('Version ' + '.'.join(VERSION))
                                 self.output('by Till Vennefrohne')
                                 self.output('Daemon startet at ' + str(starttime) + ' / PID: ' + str(os.getpid()))
                                 self.output('Welcome to the shell. Type Q to exit')
@@ -437,7 +440,22 @@ class IPCIncomingConnection(threading.Thread):
                                             self.pid = msg['pid']
                                             self.send('MODINIT', 'SINGLEREQUEST')
 
-                                        elif method == 'MODPIPE':
+                                        if method == 'VERSION':
+                                            self.send('VERSION', VERSION)
+
+                                        elif method == 'GLOBALEVENT':
+                                            self.ismodule = True
+                                            self.module = payload
+                                            self.pid = msg['pid']
+                                            if self.pid in v.pids:
+                                                event_module = v.pids[self.pid].moduleident
+                                                event_workspace = v.pids[self.pid].workspace
+                                                event_pid = v.pids[self.pid].pid
+                                                eventTrigger('GLOBALEVENT', {'module': event_module, 'workspace': event_workspace,'pid': event_pid}, payload)
+                                            self.send('MODREQ', 'OK')
+
+                                    elif type == 'PIPE':
+                                        if method == 'MODPIPE':
                                             self.ismodule = True
                                             self.module = payload
                                             self.pid = msg['pid']
@@ -445,12 +463,7 @@ class IPCIncomingConnection(threading.Thread):
                                                 v.pids[self.pid].eventpipe = self
                                             self.send('MODINIT', 'PIPE')
 
-                                        elif method == 'GLOBALEVENT':
-                                            self.ismodule = True
-                                            self.module = payload
-                                            self.pid = msg['pid']
-                                            eventTrigger('GLOBALEVENT',payload)
-                                            self.send('MODREQ', 'OK')
+
 
                     else:
                         pass
@@ -598,6 +611,7 @@ def moduleRemove(workspace, ident):
 def moduleRun(workspace, ident):
     if os.path.isdir(os.path.join(pathWorspace(workspace.upper()),ident.upper())):
         Module(workspace.upper(), ident.upper()).start()
+        eventTrigger('RUN', False, {'workspace': workspace.upper(), 'module': ident.upper(), 'timestamp': time.time()})
         return True
     return False
 
@@ -642,9 +656,19 @@ def moduleHasErrors(source):
         return "mokka.toml missing"
     return False
 
-def eventTrigger(method, payload):
+def eventTrigger(method, module, payload):
     for pid in v.pids:
         if v.pids[pid].eventpipe:
+            moduledata = {}
+            if module:
+                moduledata = module
+            else:
+                moduledata = False
+            payload = {
+                'method': method,
+                'module': moduledata,
+                'payload': payload
+            }
             v.pids[pid].eventpipe.send(method, payload)
         pass
 

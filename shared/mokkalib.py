@@ -10,6 +10,8 @@ import os
 import sys
 import tomllib 
 
+VERSION = ['0','1','1']
+
 tlock = threading.Lock()
 client = False
 secret = False
@@ -32,12 +34,14 @@ class IPCOutgoingConnection(threading.Thread):
                 msg = self.conn.recv()
                 with tlock:
                     if self.eventHandler:
-                        self.eventHandler(msg)
+                        if 'payload' in msg:
+                            self.eventHandler(msg['payload'])
+
             except Exception as err:
                 break
 
     def initConnection(self):
-        self.send({'type': 'REQUEST', 'pid': 'p'+str(os.getpid()), 'method': 'MODPIPE', 'payload': 'MY'})
+        self.send({'type': 'PIPE', 'pid': 'p'+str(os.getpid()), 'method': 'MODPIPE', 'payload': 'MY'})
 
     def send(self, data):
         self.conn.send(data)
@@ -53,6 +57,10 @@ def pathBase():
     if not os.path.isdir(pb):
         os.mkdir(pb)
     return pb
+
+def getVersion():
+    res = request('VERSION', False)
+    return {'DAEMON': res['payload'], 'LIB': VERSION}
 
 def request(method, payload):
     global secret, port, config, initialized

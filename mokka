@@ -9,6 +9,14 @@ import socket
 import os
 import sys
 
+pyver_major = sys.version_info[0]
+pyver_minor = sys.version_info[1]
+pyver_micro = sys.version_info[2]
+
+if pyver_major < 3 or (pyver_major == 3 and pyver_minor < 12):
+    print("Python version 3.12 or higher required.")
+    os._exit(1)
+
 tlock = threading.Lock()
 
 class IPCOutgoingConnection(threading.Thread):
