@@ -4,6 +4,7 @@ echo "Installing Mokka"
 cd ~
 
 DIR="./mokka"
+SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 echo " _____     _   _       "
 echo "|     |___| |_| |_ ___ "
@@ -12,6 +13,7 @@ echo "|_|_|_|___|_,_|_,_|__,|"
 echo 
 echo "Website: https://github.com/mokny/mokka"
 echo "Starting installation..."
+echo "$SCRIPTPATH"
 
 if [ -d "$DIR" ]; then
 
@@ -37,3 +39,5 @@ chmod +x mokka
 
 echo "Done."
 exit 0
+
+#sudo ln -s /usr/local/google_app_engine/bin/script.py /usr/bin/script.py 
