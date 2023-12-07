@@ -4,6 +4,7 @@ echo "Installing Mokka"
 cd ~
 
 DIR="~/mokka"
+DIR="/etc"
 
 if [ -d "$DIR" ]; then
     read -n1 -p "There is already a mokka directory. Remove? [Y,n]" doit 
