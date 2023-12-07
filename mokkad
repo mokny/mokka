@@ -52,48 +52,55 @@ class Module(threading.Thread):
         self.config = moduleGetConfig(pathModule(workspace, ident))
         self.eventpipe = False
         self.pid = False
+        self.killflag = False
         v.modules[self.workspace + '/' + self.moduleident] = self
 
     def kill(self):
-        self.process.kill()
-        pass
+        self.killflag = True
+        try:
+            self.process.kill()
+        except:
+            pass
 
     def run(self):
-        cmd = 'bin/python ' + self.config['GENERAL']['exec']
-        value = 'ping -c 10 localhost' 
-        value = cmd
-        try:
-            os.environ["PYTHONUNBUFFERED"] = "1"
+        if not self.killflag:
+            cmd = 'bin/python ' + self.config['GENERAL']['exec']
+            value = 'ping -c 10 localhost' 
+            value = cmd
+            try:
+                os.environ["PYTHONUNBUFFERED"] = "1"
 
-            self.process = subprocess.Popen(value.split(' '), stdout = subprocess.PIPE, stdin = subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, preexec_fn=os.setsid, cwd=pathModule(self.workspace, self.moduleident))
-            self.ps = psutil.Process(self.process.pid)
-            self.pid = self.process.pid
+                self.process = subprocess.Popen(value.split(' '), stdout = subprocess.PIPE, stdin = subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, preexec_fn=os.setsid, cwd=pathModule(self.workspace, self.moduleident))
+                self.ps = psutil.Process(self.process.pid)
+                self.pid = self.process.pid
 
-            v.pids['p'+str(self.pid)] = self
+                v.pids['p'+str(self.pid)] = self
 
-            while True:
-                line = self.process.stdout.readline()
-                self.process.stdout.flush()
-                if not line:
-                    break
-                self.output.append(line.rstrip())
-                if len(self.output) > 1000:
-                    self.output = self.output[1:]
+                while not self.killflag:
+                    line = self.process.stdout.readline()
+                    self.process.stdout.flush()
+                    if not line:
+                        break
+                    self.output.append(line.rstrip())
+                    if len(self.output) > 1000:
+                        self.output = self.output[1:]
 
-            err = self.process.stderr.read()          
-            if err:
-                self.output.append(str(err))
+                err = self.process.stderr.read()          
+                if err:
+                    self.output.append(str(err))
+                    pass
+
+                self.output.append('--END--')
+            except Exception as err:
+                self.output.append(str('-- END WITH ERR ' + str(err) + ' --'))
+                print(err)
                 pass
-
-            self.output.append('--END--')
-        except Exception as err:
-            self.output.append(str('-- END WITH ERR ' + str(err) + ' --'))
-            print(err)
-            pass
         
         with tlock:
-            del v.modules[self.workspace + '/' + self.moduleident]
-            del v.pids['p'+str(self.pid)] 
+            if self.workspace + '/' + self.moduleident in v.modules:
+                del v.modules[self.workspace + '/' + self.moduleident]
+            if 'p'+str(self.pid) in v.pids:
+                del v.pids['p'+str(self.pid)] 
 
 
 class APIServer(BaseHTTPRequestHandler):
@@ -237,6 +244,12 @@ class IPCIncomingConnection(threading.Thread):
                             elif msg[0].lower() == "install":
                                 if len(msg) == 3:
                                     moduleInstall(msg[1], msg[2], self)
+                                self.disconnect()
+                            
+                            # Kill Module
+                            elif msg[0].lower() == "kill":
+                                if len(msg) == 3:
+                                    moduleKill(msg[1], msg[2])
                                 self.disconnect()
                             
                             # Remove Module
@@ -462,6 +475,14 @@ class IPCIncomingConnection(threading.Thread):
                                             else:
                                                 self.send('MODULEEXISTS', False)
 
+                                        elif method == 'MODULEISRUNNING':
+                                            if not payload['workspace']:
+                                                payload['workspace'] = v.pids[msg['pid']].workspace
+                                            if moduleIsRunning(payload['workspace'], payload['module']):
+                                                self.send('MODULEISRUNNING', True)
+                                            else:
+                                                self.send('MODULEISRUNNING', False)
+
                                         elif method == 'INSTALL':
                                             if not payload['workspace']:
                                                 payload['workspace'] = v.pids[msg['pid']].workspace
@@ -477,6 +498,14 @@ class IPCIncomingConnection(threading.Thread):
                                                 self.send('REMOVE', True)
                                             else:
                                                 self.send('REMOVE', False)
+
+                                        elif method == 'KILL':
+                                            if not payload['workspace']:
+                                                payload['workspace'] = v.pids[msg['pid']].workspace
+                                            if moduleKill(payload['workspace'], payload['module']):
+                                                self.send('KILL', True)
+                                            else:
+                                                self.send('KILL', False)
 
                                         elif method == 'GLOBALEVENT':
                                             self.ismodule = True
@@ -575,6 +604,12 @@ def moduleExists(workspace, ident):
         return True
     return False
 
+def moduleIsRunning(workspace, ident):
+    mident = workspace.upper() + '/' + ident.upper()
+    if mident in v.modules:
+        return True
+    return False
+
 def moduleInstall(workspace, source, client = False):
     if not os.path.isdir(pathWorspace(workspace.upper())):
         if client: client.output("Workspace " + workspace.upper() + ' does not exist')
@@ -643,12 +678,16 @@ def moduleExists(workspace, ident):
     return False
 
 def moduleRemove(workspace, ident):
+    eventTrigger('REMOVEMODULE', False, {'workspace': workspace.upper(), 'module': ident.upper(), 'timestamp': time.time()})
+
+    moduleKill(workspace, ident)
     if os.path.isdir(os.path.join(pathWorspace(workspace.upper()),ident.upper())):
         shutil.rmtree(os.path.join(pathWorspace(workspace.upper()),ident.upper()))
         return True
     return False
 
 def moduleRun(workspace, ident):
+    moduleKill(workspace, ident)
     if os.path.isdir(os.path.join(pathWorspace(workspace.upper()),ident.upper())):
         Module(workspace.upper(), ident.upper()).start()
         eventTrigger('RUN', False, {'workspace': workspace.upper(), 'module': ident.upper(), 'timestamp': time.time()})
@@ -659,6 +698,19 @@ def moduleGetLog(workspace, ident):
     mident = workspace.upper() + '/' + ident.upper()
     if mident in v.modules:
         return v.modules[mident].output
+
+def moduleKill(workspace, ident):
+    mident = workspace.upper() + '/' + ident.upper()
+    if mident in v.modules:
+        eventTrigger('KILLMODULE', False, {'workspace': workspace.upper(), 'module': ident.upper(), 'pt': mident, 'timestamp': time.time()})
+        try:
+            v.modules[mident].kill()
+        except Exception as err:
+            eventTrigger('ERRKILL', False, {'workspace': workspace.upper(), 'module': ident.upper(), 'pt': mident, 'msg': err, 'running': str(v.modules), 'timestamp': time.time()})
+            return False
+        return True
+    return False
+
 
 def moduleKillAll():
     for ident in v.modules:

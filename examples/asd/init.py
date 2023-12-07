@@ -41,6 +41,7 @@ print("Trying to run bla")
 # Run another module. Param2 can be a workspace. if not defined, own workspace will be used
 print(mokkalib.runModule('BLA'))
 
+
 print("Removing BLA")
 # Removing another module. Param2 can be a workspace. if not defined, own workspace will be used
 print(mokkalib.remove('BLA'))

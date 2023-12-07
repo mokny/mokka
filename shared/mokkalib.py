@@ -75,12 +75,20 @@ def moduleExists(module, workspace = False):
     res = request('MODULEEXISTS', {'workspace': workspace, 'module': module})
     return res['payload']
 
+def moduleIsRunning(module, workspace = False):
+    res = request('MODULEISRUNNING', {'workspace': workspace, 'module': module})
+    return res['payload']
+
 def install(module, workspace = False):
     res = request('INSTALL', {'workspace': workspace, 'module': module})
     return res['payload']
 
 def remove(module, workspace = False):
     res = request('REMOVE', {'workspace': workspace, 'module': module})
+    return res['payload']
+
+def kill(module, workspace = False):
+    res = request('KILL', {'workspace': workspace, 'module': module})
     return res['payload']
 
 def request(method, payload):
