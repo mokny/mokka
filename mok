@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if ! command -v python3.12 &> /dev/null
+if command -v python3.12 &> /dev/null
 then
     python3.12 mokka "$@"
 else
