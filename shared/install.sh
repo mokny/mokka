@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Install with curl -sSL https://raw.githubusercontent.com/mokny/mokka/main/shared/install.sh | bash
+echo "Installing Mokka"
 cd ~
 if [ -d ./mokka ]; then
     read -n1 -p "There is already a mokka directory. Remove? [Y,n]" doit 
