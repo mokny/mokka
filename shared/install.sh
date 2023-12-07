@@ -6,12 +6,12 @@ cd ~
 DIR="./mokka"
 #DIR="/etc"
 
-echo "Do that? [Y,n]" </dev/tty
-read input
+echo "Do that? [Y,n]" 
+read input </dev/tty
 
 if [ -d "$DIR" ]; then
 
-    read -p "There is already a mokka directory. Remove? Y/N" -n 1 -r
+    read -p "There is already a mokka directory. Remove? Y/N" -r </dev/tty
     echo    # (optional) move to a new line
     if [[ $REPLY =~ ^[Yy]$ ]]
     then
