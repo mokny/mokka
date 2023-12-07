@@ -15,7 +15,7 @@ echo "Starting installation..."
 
 if [ -d "$DIR" ]; then
 
-    read -p "There is already a mokka directory. Remove? Y/N" -r </dev/tty
+    read -p "There is already a mokka directory. Remove? [Y/N] " -r </dev/tty
     echo    # (optional) move to a new line
     if [[ $REPLY =~ ^[Yy]$ ]]
     then
