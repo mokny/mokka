@@ -3,7 +3,7 @@
 echo "Installing Mokka"
 cd ~
 
-DIR="~/mokka"
+DIR="./mokka"
 #DIR="/etc"
 
 if [ -d "$DIR" ]; then
