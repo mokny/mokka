@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ORIGINFILE=$(readlink -f /usr/bin/mokka)
-ORIGINDIR=$($ORIGINFILE%/*)/
+ORIGINDIR=${ORIGINFILE%/*}/
 cd "$(dirname "$0")"
 cd "$ORIGINDIR"
 
