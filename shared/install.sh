@@ -4,10 +4,14 @@ echo "Installing Mokka"
 cd ~
 
 DIR="./mokka"
-#DIR="/etc"
 
-echo "Do that? [Y,n]" 
-read input </dev/tty
+echo " _____     _   _       "
+echo "|     |___| |_| |_ ___ "
+echo "| | | | . | '_| '_| .'|"
+echo "|_|_|_|___|_,_|_,_|__,|"
+echo 
+echo "Website: https://github.com/mokny/mokka"
+echo "Starting installation..."
 
 if [ -d "$DIR" ]; then
 
@@ -15,17 +19,16 @@ if [ -d "$DIR" ]; then
     echo    # (optional) move to a new line
     if [[ $REPLY =~ ^[Yy]$ ]]
     then
-        echo "Removing directory"
+        echo "Removing directory..."
         rm -rf ./mokka
     else
-        echo "Aborting installation!"
+        echo "Installation aborted."
         exit 0
     fi
 
-else
-    echo "All ok, cloning repo"
 fi
 
+echo "Cloning the latest nightly build..."
 git clone https://github.com/mokny/mokka
 cd mokka
 chmod +x mokka
