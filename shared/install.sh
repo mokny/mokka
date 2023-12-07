@@ -15,7 +15,7 @@ echo "Website: https://github.com/mokny/mokka"
 echo "Starting installation..."
 echo "$SCRIPTPATH"
 
-MOKKAPATH = "$SCRIPTPATH/mokka/mokka"
+MOKKAPATH="$SCRIPTPATH/mokka/mokka"
 
 if [ -d "$DIR" ]; then
 
