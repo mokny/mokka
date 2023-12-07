@@ -41,8 +41,8 @@ chmod +x mokka
 read -p "Make mokka command global available? (Sudo required) [y/N] " -r </dev/tty
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
-    sudp rm -f /usr/bin/mokka
-    sudo ln -s "$MOKKAPATH" /usr/bin/mokka 
+    echo "sudo ln -sf $MOKKAPATH /usr/bin/mokka"
+    sudo ln -sf "$MOKKAPATH" /usr/bin/mokka 
 fi
 
 
