@@ -37,7 +37,7 @@ echo "Setting privileges..."
 cd mokka
 chmod +x mokka
 
-echo "Done."
+echo "Installation complete."
 exit 0
 
 #sudo ln -s /usr/local/google_app_engine/bin/script.py /usr/bin/script.py 
