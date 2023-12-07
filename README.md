@@ -1,12 +1,9 @@
 # MOKKA
 Python runtime and workspace manager
 
-## Installation
+## Installation on Linux
 ```
-git clone https://github.com/mokny/mokka
-cd mokka
-chmod +x mokka
-chmod +w workspaces
+curl -sSL https://raw.githubusercontent.com/mokny/mokka/main/shared/install.sh | bash
 ```
 
 ## Running mokka
