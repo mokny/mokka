@@ -2,7 +2,10 @@
 # Install with curl -sSL https://raw.githubusercontent.com/mokny/mokka/main/shared/install.sh | bash
 echo "Installing Mokka"
 cd ~
-if [ -d "~/mokka" ]; then
+
+DIR="~/mokka"
+
+if [ -d "$DIR" ]; then
     read -n1 -p "There is already a mokka directory. Remove? [Y,n]" doit 
     case $doit in  
     y|Y) rm -rf ./mokka ;; 
