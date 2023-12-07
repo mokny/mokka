@@ -1,23 +1,31 @@
 # MOKKA
 Python runtime and workspace manager
 
+## Requirements
+- Python 3.12 or higher
+
 ## Installation on Linux
 ```
 curl -sSL https://raw.githubusercontent.com/mokny/mokka/main/shared/install.sh | bash
 ```
 
-## Running mokka
-If exec permission was set for mokka:
+## Using MOKKA
+
+### Creating a workspace
+To create a workspace type
 ```
-./mokka console
+mokka workspace create <NAME>
 ```
 
-If you want to use python:
+### Installing modules
+To install modules type
 ```
-python mokka
+mokka install <WORKSPACENAME> </PATH/TO/MODULE>
 ```
 
-If you want to use a specific python version (replace XXX with version):
+### Running modules
+To run a module type
 ```
-/usr/bin/pythonXXX mokka
+mokka run <WORKSPACENAME> <MODULEIDENT>
 ```
+
