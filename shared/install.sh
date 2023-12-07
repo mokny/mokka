@@ -6,7 +6,8 @@ cd ~
 DIR="./mokka"
 #DIR="/etc"
 
-read -p "LOLO" -n 1 -r
+echo "Do that? [Y,n]"
+read input
 
 if [ -d "$DIR" ]; then
 
