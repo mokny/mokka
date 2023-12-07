@@ -6,6 +6,8 @@ cd ~
 DIR="./mokka"
 #DIR="/etc"
 
+read -p "LOLO" -n 1 -r
+
 if [ -d "$DIR" ]; then
 
     read -p "There is already a mokka directory. Remove? Y/N" -n 1 -r
