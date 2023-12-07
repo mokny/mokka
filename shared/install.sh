@@ -6,7 +6,7 @@ cd ~
 DIR="./mokka"
 #DIR="/etc"
 
-echo "Do that? [Y,n]"
+echo "Do that? [Y,n]" </dev/tty
 read input
 
 if [ -d "$DIR" ]; then
