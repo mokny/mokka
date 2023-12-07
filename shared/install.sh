@@ -5,5 +5,3 @@ rm -rf ./mokka
 git clone https://github.com/mokny/mokka
 cd mokka
 chmod +x mokka
-chmod +x mokkad
-chmod +x mok

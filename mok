@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-
-if command -v python3.12 &> /dev/null
-then
-    python3.12 mokka "$@"
-else
-    python mokka "$@"
-fi
