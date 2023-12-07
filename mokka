@@ -1,14 +1,11 @@
 #!/usr/bin/env bash
-echo "$PWD"
-if [ -f "/usr/bin/mokka" ]; then
-echo "Symlink exists $0"
-fi
 
-echo "$0"
 if [[ "$0" == "/usr/bin/mokka" ]]; then
     ORIGINFILE=$(readlink -f /usr/bin/mokka)
     ORIGINDIR=${ORIGINFILE%/*}/
     cd "$ORIGINDIR"
+else
+    cd "$DIR"
 fi
 
 if command -v python3.12 &> /dev/null
