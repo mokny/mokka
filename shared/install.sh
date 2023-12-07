@@ -10,7 +10,6 @@ if [ -d ./mokka ]; then
     esac
 fi
 
-rm -rf ./mokka
 git clone https://github.com/mokny/mokka
 cd mokka
 chmod +x mokka
