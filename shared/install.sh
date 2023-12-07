@@ -4,7 +4,7 @@ echo "Installing Mokka"
 cd ~
 
 DIR="~/mokka"
-DIR="/etc"
+#DIR="/etc"
 
 if [ -d "$DIR" ]; then
 
