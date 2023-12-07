@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
+echo "$PWD"
+
 ORIGINFILE=$(readlink -f /usr/bin/mokka)
 ORIGINDIR=${ORIGINFILE%/*}/
-cd "$(dirname "$0")"
 cd "$ORIGINDIR"
 
 if command -v python3.12 &> /dev/null
