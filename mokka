@@ -5,7 +5,7 @@ if [[ "$0" == "/usr/bin/mokka" ]]; then
     ORIGINDIR=${ORIGINFILE%/*}/
     cd "$ORIGINDIR"
 else
-    cd ${DIR}
+    cd ~/mokka
 fi
 
 if command -v python3.12 &> /dev/null
