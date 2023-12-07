@@ -12,19 +12,16 @@ curl -sSL https://raw.githubusercontent.com/mokny/mokka/main/shared/install.sh |
 ## Using MOKKA
 
 ### Creating a workspace
-To create a workspace type
 ```
 mokka workspace create <NAME>
 ```
 
 ### Installing modules
-To install modules type
 ```
 mokka install <WORKSPACENAME> </PATH/TO/MODULE>
 ```
 
 ### Running modules
-To run a module type
 ```
 mokka run <WORKSPACENAME> <MODULEIDENT>
 ```
