@@ -91,6 +91,10 @@ def kill(module, workspace = False):
     res = request('KILL', {'workspace': workspace, 'module': module})
     return res['payload']
 
+def getApi():
+    res = request('GETAPI', True)
+    return res['payload']
+
 def request(method, payload):
     global secret, port, config, initialized
     address = ('127.0.0.1', port)

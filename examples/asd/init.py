@@ -24,8 +24,15 @@ mokkalib.setEventHandler(eventHandler)
 # Triggering a global event
 mokkalib.triggerGlobalEvent('Moinsen')
 
+print(mokkalib.getApi())
+
 # Get the workspace we are running in
 print("My Workspace: " + mokkalib.getWorkspace())
+
+# Check if another module is running: IDENT, WORKSPACE (optional)
+# If you do not define a workspace, the own workspace will be used
+print("Is BLA running?: " + str(mokkalib.moduleIsRunning('BLA')))
+
 
 # Check if another module is installed params: IDENT, WORKSPACE (optional)
 # If you do not define a workspace, the own workspace will be used

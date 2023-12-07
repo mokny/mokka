@@ -506,7 +506,9 @@ class IPCIncomingConnection(threading.Thread):
                                                 self.send('KILL', True)
                                             else:
                                                 self.send('KILL', False)
-
+                                        elif method == 'GETAPI':
+                                            self.send('GETAPI',"http://" + mainconfig['API']['bind']+ ":"+str(mainconfig['API']['port'])+"/api")
+                                            
                                         elif method == 'GLOBALEVENT':
                                             self.ismodule = True
                                             self.module = payload
