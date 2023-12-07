@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/bash
 # Install with curl -sSL https://raw.githubusercontent.com/mokny/mokka/main/shared/install.sh | bash
 echo "Installing Mokka"
 cd ~
