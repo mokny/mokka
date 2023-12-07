@@ -15,10 +15,11 @@ echo "Website: https://github.com/mokny/mokka"
 echo "Starting installation..."
 echo "$SCRIPTPATH"
 
+MOKKAPATH = "$SCRIPTPATH/mokka/mokka"
+
 if [ -d "$DIR" ]; then
 
-    read -p "There is already a mokka directory. Remove? [Y/N] " -r </dev/tty
-    echo    # (optional) move to a new line
+    read -p "There is already a mokka directory. Remove? [y/N] " -r </dev/tty
     if [[ $REPLY =~ ^[Yy]$ ]]
     then
         echo "Removing directory..."
@@ -37,7 +38,15 @@ echo "Setting privileges..."
 cd mokka
 chmod +x mokka
 
+read -p "Make mokka command global available? (Sudo required) [y/N] " -r </dev/tty
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+    sudp rm -f /usr/bin/mokka
+    sudo ln -s "$MOKKAPATH" /usr/bin/mokka 
+fi
+
+
 echo "Installation complete."
 exit 0
 
-#sudo ln -s /usr/local/google_app_engine/bin/script.py /usr/bin/script.py 
+#
