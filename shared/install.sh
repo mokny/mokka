@@ -23,12 +23,17 @@ if [ -d "$DIR" ]; then
         rm -rf ./mokka
     else
         echo "Installation aborted."
-        exit 0
+        exit 1
     fi
 
 fi
 
 echo "Cloning the latest nightly build..."
 git clone https://github.com/mokny/mokka
+
+echo "Setting privileges..."
 cd mokka
 chmod +x mokka
+
+echo "Done."
+exit 0
