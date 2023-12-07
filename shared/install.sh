@@ -12,6 +12,8 @@ if [ -d "$DIR" ]; then
     n|N) exit 0 ;;
     *) rm -rf ./mokka ;; 
     esac
+else
+    echo "All ok, cloning repo"
 fi
 
 git clone https://github.com/mokny/mokka
