@@ -8,14 +8,15 @@ DIR="/etc"
 
 if [ -d "$DIR" ]; then
 
-    read -p "Are you sure? " -n 1 -r
+    read -p "There is already a mokka directory. Remove? Y/N" -n 1 -r
     echo    # (optional) move to a new line
     if [[ $REPLY =~ ^[Yy]$ ]]
     then
-        rm -rf ./mokka ;; 
+        echo "Removing directory"
+        rm -rf ./mokka
     else
+        echo "Aborting installation!"
         exit 0
-        # do dangerous stuff
     fi
 
 else
