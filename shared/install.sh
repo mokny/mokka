@@ -37,13 +37,7 @@ git clone https://github.com/mokny/mokka
 echo "Setting privileges..."
 cd mokka
 chmod +x mokka
-
-read -p "Make mokka command global available? (Sudo required) [y/N] " -r </dev/tty
-if [[ $REPLY =~ ^[Yy]$ ]]
-then
-    echo "sudo ln -sf $MOKKAPATH /usr/bin/mokka"
-    sudo ln -sf "$MOKKAPATH" /usr/bin/mokka 
-fi
+sudo ln -sf "$MOKKAPATH" /usr/bin/mokka 
 
 
 echo "Installation complete."
