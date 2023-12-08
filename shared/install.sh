@@ -5,6 +5,7 @@ cd ~
 
 DIR="./mokka"
 SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+MOKKAPATH="$SCRIPTPATH/mokka/mokka"
 
 echo " _____     _   _       "
 echo "|     |___| |_| |_ ___ "
@@ -15,10 +16,8 @@ echo "Website: https://github.com/mokny/mokka"
 echo "Starting installation..."
 echo "$SCRIPTPATH"
 
-MOKKAPATH="$SCRIPTPATH/mokka/mokka"
 
 if [ -d "$DIR" ]; then
-
     read -p "There is already a mokka directory. Remove? [y/N] " -r </dev/tty
     if [[ $REPLY =~ ^[Yy]$ ]]
     then
@@ -28,7 +27,6 @@ if [ -d "$DIR" ]; then
         echo "Installation aborted."
         exit 1
     fi
-
 fi
 
 echo "Cloning the latest nightly build..."
@@ -37,10 +35,19 @@ git clone https://github.com/mokny/mokka
 echo "Setting privileges..."
 cd mokka
 chmod +x mokka
+
+echo "Creating symlink to make mokka global available..."
 sudo ln -sf "$MOKKAPATH" /usr/bin/mokka 
 
 
 echo "Installation complete."
+
+read -p "Do you want to edit the Configuration-File? [y/N] " -r </dev/tty
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+    nano mokka/config/config.toml
+fi
+
+
 exit 0
 
-#
