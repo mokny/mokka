@@ -22,6 +22,7 @@ import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
 from urllib.request import urlretrieve
+from urllib.request import urlopen
 
 VERSION = ['0','1','1']
 
@@ -235,6 +236,7 @@ class IPCIncomingConnection(threading.Thread):
                                 self.output('KILL <WS> <IDENT>                  Kill a module')
                                 self.output('KILLALL                            Kill all running modules')
                                 self.output('PS                                 Running modules')
+                                self.output('SEARCH                             Search on marketplace')
                                 self.output('EVENT                              Trigger event')
                                 self.output('EVENTPIPES                         List all eventpipes')
                                 self.disconnect()
@@ -300,6 +302,16 @@ class IPCIncomingConnection(threading.Thread):
                             elif msg[0].lower() == "killall":
                                 moduleKillAll()
                                 self.disconnect()
+
+                            # Get module logs
+                            elif msg[0].lower() == "search":
+                                if len(msg) >= 1:
+                                    results = marketSearch(' '.join(msg[1:]))
+                                    for res in results:
+                                        self.output('-> ' + res['ident'] + ' - ' + res['title'])
+                                if len(results) == 0: self.output("No results")
+                                self.disconnect()
+
 
                             #frida
                             elif msg[0].lower() == "frida":
@@ -596,6 +608,27 @@ def pathModule(workspace, ident):
     pb = os.path.join(os.path.expanduser('~'), 'mokkabase', workspace, ident)
     return pb
 
+def marketGet():
+    with urlopen(mainconfig['MARKET']['url']) as f:
+        tomlraw = f.read()
+    return tomllib.loads(str(tomlraw.decode('utf-8')))
+
+def marketSearch(term):
+    market = marketGet()
+    results = []
+    for resmodule in market['MODULES']:
+        if term in resmodule['ident']: results.append(resmodule)
+        elif term in resmodule['title']: results.append(resmodule)
+        elif term in resmodule['description']: results.append(resmodule)
+    return results
+
+def marketGetIdent(ident):
+    market = marketGet()
+    for resmodule in market['MODULES']:
+        if ident == resmodule['ident']: return resmodule
+    return False
+
+
 def moduleGetConfig(source):
     with open(os.path.join(os.path.join(source, 'mokka.toml')), "r") as f:
         tomlraw = f.read()
@@ -619,6 +652,11 @@ def moduleInstall(workspace, source, client = False):
     
     tmpdir = False
 
+    marketResult = marketGetIdent(source)
+    if marketResult:
+        if client: client.output('Installing from Marketplace..')
+        source = marketResult['path']
+
     if is_url(source):
         if not str(source).lower().endswith('.zip'):
             if client: client.output('Only ZIP files supported')
@@ -640,7 +678,7 @@ def moduleInstall(workspace, source, client = False):
         os.remove(os.path.join(pathTmpDir(), fn + '.zip'))
         
         tmpdir = os.path.join(pathTmpDir(), fn)
-        source = tmpdir
+        source = tmpdir      
 
     if os.path.isdir(source):
         if client: client.output('Installing from ' + source)
@@ -805,8 +843,9 @@ def setup():
 def init():
     global mainconfig
     mainconfig = loadConfig()
-
+    
     ssl._create_default_https_context = ssl._create_unverified_context
+
     port, secret = setup()
     print("IPC-Port: " + str(port))
     print("IPC-Secret: " + str(secret))
