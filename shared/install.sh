@@ -38,14 +38,7 @@ chmod +x mokka
 echo "Creating symlink to make mokka global available..."
 sudo ln -sf "$MOKKAPATH" /usr/bin/mokka 
 
-read -p "-> Do you want to edit the Configuration-File? [y/N] " -r </dev/tty
-if [[ $REPLY =~ ^[Yy]$ ]]
-then
-    cd mokka
-    cd config
-    exec nano config.toml
-fi
-
+echo "You can change the configuration file at ~/mokka/config/config.toml"
 echo "Installation complete."
 exit 0
 
