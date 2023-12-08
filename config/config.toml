@@ -2,3 +2,6 @@
 enabled = true
 bind = '127.0.0.1'
 port = 42665
+
+[MARKET]
+url = "https://raw.githubusercontent.com/mokny/mokka/main/shared/marketplace.toml"

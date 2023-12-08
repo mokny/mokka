@@ -1,0 +1,17 @@
+[MARKET]
+title = "MOKKA Official"
+author = "Till Vennefrohne"
+
+[[MODULES]]
+title = "Testmodule"
+ident = "test"
+description = "This is a test module"
+path = "~/mokka/examples/asd"
+
+[[MODULES]]
+title = "MOKKA Webinterface"
+ident = "mweb"
+description = "Webinterface for MOKKA"
+path = "~/mokka/examples/mweb"
+
+
