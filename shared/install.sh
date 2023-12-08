@@ -43,7 +43,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]
 then
     cd mokka
     cd config
-    nano config.toml
+    exec nano config.toml
 fi
 
 echo "Installation complete."
