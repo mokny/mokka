@@ -1,0 +1,10 @@
+[GENERAL]
+title = "CPU Eater"
+ident = "cpueater"
+exec = "cpueater.py"
+python = "bin/python"
+
+[INSTALL]
+#piplibs = [
+#    'GitPython'
+#]

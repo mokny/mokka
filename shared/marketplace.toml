@@ -20,4 +20,10 @@ ident = "ipctest"
 description = "An IPC example"
 path = "https://raw.githubusercontent.com/mokny/mokka/main/examples/_binaries/ipctest.zip"
 
+[[MODULES]]
+title = "CPU Eater"
+ident = "cpueater"
+description = "An endless loop eating CPU"
+path = "https://raw.githubusercontent.com/mokny/mokka/main/examples/_binaries/cpueater.zip"
+
 
