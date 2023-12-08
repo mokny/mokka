@@ -34,3 +34,5 @@ Modules run as subprocess in mokka. Each module can communicate with other modul
 mokka run <WORKSPACENAME> <MODULEIDENT>
 ```
 
+# More information in the WIKI
+[MOKKA-Wiki](https://github.com/mokny/mokka/wiki)
