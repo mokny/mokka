@@ -242,7 +242,13 @@ class IPCIncomingConnection(threading.Thread):
                                 self.output('EVENTPIPES                         List all eventpipes')
                                 self.disconnect()
                             
-                           
+                            # Information
+                            elif msg[0].lower() == "info":
+                                self.output('Version ' + '.'.join(VERSION))
+                                self.output('by Till Vennefrohne')
+                                self.output('Daemon startet at ' + str(starttime) + ' / PID: ' + str(os.getpid()))
+                                self.disconnect()
+
                             # Install Module
                             elif msg[0].lower() == "install":
                                 if len(msg) == 3:
