@@ -4,12 +4,10 @@ import sys
 import uuid
 import mokkalib
 
+print("Welcome to the IPC Example!")
+
 # This has to be done in your main file
 mokkalib.init()
-
-# Sending a raw request
-result = mokkalib.request("TEST","mytest")
-print(result)
 
 # Getting the version as array
 version = mokkalib.getVersion()
