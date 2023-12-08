@@ -14,4 +14,10 @@ ident = "mweb"
 description = "Webinterface for MOKKA"
 path = "~/mokka/examples/mweb"
 
+[[MODULES]]
+title = "IPC Testmodule"
+ident = "ipctest"
+description = "An IPC example"
+path = "https://raw.githubusercontent.com/mokny/mokka/main/examples/_binaries/ipctest.zip"
+
 

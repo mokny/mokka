@@ -1,0 +1,10 @@
+[GENERAL]
+title = "IPC Testmodule"
+ident = "ipctest"
+exec = "ipctest.py"
+python = "bin/python"
+
+[INSTALL]
+#piplibs = [
+#    'GitPython'
+#]
