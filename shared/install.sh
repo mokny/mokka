@@ -14,7 +14,6 @@ echo "|_|_|_|___|_,_|_,_|__,|"
 echo 
 echo "Website: https://github.com/mokny/mokka"
 echo "Starting installation..."
-echo "$SCRIPTPATH"
 
 
 if [ -d "$DIR" ]; then
