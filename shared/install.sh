@@ -18,7 +18,7 @@ echo "$SCRIPTPATH"
 
 
 if [ -d "$DIR" ]; then
-    read -p "There is already a mokka directory. Remove? [y/N] " -r </dev/tty
+    read -p "-> There is already a mokka directory. Remove? [y/N] " -r </dev/tty
     if [[ $REPLY =~ ^[Yy]$ ]]
     then
         echo "Removing directory..."
@@ -39,15 +39,14 @@ chmod +x mokka
 echo "Creating symlink to make mokka global available..."
 sudo ln -sf "$MOKKAPATH" /usr/bin/mokka 
 
-
-echo "Installation complete."
-
-read -p "Do you want to edit the Configuration-File? [y/N] " -r </dev/tty
+read -p "-> Do you want to edit the Configuration-File? [y/N] " -r </dev/tty
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
-    nano mokka/config/config.toml
+    cd mokka
+    cd config
+    nano config.toml
 fi
 
-
+echo "Installation complete."
 exit 0
 
