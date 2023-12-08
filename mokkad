@@ -316,8 +316,8 @@ class IPCIncomingConnection(threading.Thread):
                             # List modules in workspace
                             elif msg[0].lower() == "modules" or msg[0].lower() == "mods":
                                 if len(msg) == 2:
-                                    for fmodule in os.listdir(pathWorspace(msg[1])):
-                                        if os.path.isdir(os.path.join(pathWorspace(msg[1]), fmodule)):
+                                    for fmodule in os.listdir(pathWorspace(msg[1].upper())):
+                                        if os.path.isdir(os.path.join(pathWorspace(msg[1].upper()), fmodule)):
                                             if not fmodule.startswith('.'):
                                                 if moduleIsRunning(msg[1], fmodule):
                                                     self.output(fmodule + ' (Running)')
