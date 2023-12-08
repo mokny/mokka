@@ -6,7 +6,7 @@ author = "Till Vennefrohne"
 title = "Testmodule"
 ident = "test"
 description = "This is a test module"
-path = "~/mokka/examples/asd"
+path = "/home/pi/mokka/examples/asd"
 
 [[MODULES]]
 title = "MOKKA Webinterface"
