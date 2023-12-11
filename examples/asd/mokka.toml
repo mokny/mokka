@@ -9,3 +9,6 @@ venv = true
 #piplibs = [
 #    'GitPython'
 #]
+
+options.myopt1 = "Hello"
+options.myopt2 = "Test"

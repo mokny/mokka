@@ -32,7 +32,7 @@ mainconfig = {}
 
 class VarHolder(object):
     def info():
-        print('Just a dummy')
+        pass
 sys.modules["varholder"] = VarHolder
 
 import varholder as v
@@ -41,6 +41,7 @@ v.modules = {}
 v.pids = {}
 v.eventreceivers = {}
 v.apiserver = False
+v.options = {}
 
 class Module(threading.Thread):
     def __init__(self, workspace, ident):  
@@ -240,6 +241,8 @@ class IPCIncomingConnection(threading.Thread):
                                 self.output('SEARCH                             Search on marketplace')
                                 self.output('EVENT                              Trigger event')
                                 self.output('EVENTPIPES                         List all eventpipes')
+                                self.output('SETOPT <WS> <MOD> <OPT> <VALUE>    Set an option for a module')
+                                self.output('GETOPT <WS> <MOD> <OPT>            Get an option from a module')
                                 self.disconnect()
                             
                             # Information
@@ -276,6 +279,23 @@ class IPCIncomingConnection(threading.Thread):
                                         self.output('Not a module')
                                 else:
                                     self.output('Use RUN <WORKSPACE> <IDENT>')
+                                self.disconnect()
+
+                            # Set Option
+                            elif msg[0].lower() == "setopt":
+                                if len(msg) == 5:
+                                    setOption(msg[1].upper(), msg[2].upper(), msg[3].upper(), ' '.join(msg[4:]))
+                                else:
+                                    self.output('Use setopt <WORKSPACE> <MODULE> <OPTION> <VALUE>')
+                                self.disconnect()
+                            
+                            # Get Option
+                            elif msg[0].lower() == "getopt":
+                                if len(msg) == 4:
+                                    option = getOption(msg[1].upper(), msg[2].upper(), msg[3].upper())
+                                    self.output(option)
+                                else:
+                                    self.output('Use getopt <WORKSPACE> <MODULE> <OPTION>')
                                 self.disconnect()
                             
                             # List running modules
@@ -626,6 +646,41 @@ def pathModule(workspace, ident):
     pb = os.path.join(os.path.expanduser('~'), 'mokkabase', workspace, ident)
     return pb
 
+def saveOptions(workspace, options):
+    with open(os.path.join(pathWorspace(workspace),'options.json'), "w") as f:
+        f.write(json.dumps(options))
+
+def loadOptions(workspace):
+    if os.path.isfile(os.path.join(pathWorspace(workspace),'options.json')):
+        with open(os.path.join(os.path.join(pathWorspace(workspace),'options.json')), "r") as f:
+            optionsraw = f.read()
+        return json.loads(optionsraw)
+    else:
+        return {}
+    
+def setOption(workspace, module, option, value):
+    workspace = workspace.upper()
+    module = module.upper()
+    option = option.upper()
+    options = loadOptions(workspace)
+    if not workspace in options:
+        options[workspace] = {}
+    if not module in options[workspace]:
+        options[workspace][module] = {}
+    options[workspace][module][option] = value
+    saveOptions(workspace, options[workspace])
+
+def getOption(workspace, module, option, default = None):
+    workspace = workspace.upper()
+    module = module.upper()
+    option = option.upper()
+    options = loadOptions(workspace)
+    if workspace in options:
+        if module in options[workspace]:
+            if option in options[workspace][module]:
+                return options[workspace][module][option]
+    return default
+
 def marketGet():
     with urlopen(mainconfig['MARKET']['url']) as f:
         tomlraw = f.read()
@@ -722,6 +777,10 @@ def moduleInstall(workspace, source, client = False):
                     for piplib in config['INSTALL']['piplibs']:
                         if client: client.output('Installing '+piplib+'...')
                         subprocess.check_call([os.path.join(pathWorspace(workspace.upper()), config['GENERAL']['ident'].upper(),'bin','python'), "-m", "pip", "install", piplib])
+                if 'options' in config['INSTALL']:
+                    for option in config['INSTALL']['options']:
+                        if client: client.output('Setting option '+option+' = '+str(config['INSTALL']['options'][option]))
+                        setOption(workspace.upper(), config['GENERAL']['ident'].upper(),option,config['INSTALL']['options'][option])
             
             if client: client.output('Module installed')
             return True
