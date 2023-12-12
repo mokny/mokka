@@ -34,5 +34,12 @@ Modules run as subprocess in mokka. Each module can communicate with other modul
 mokka run <WORKSPACENAME> <MODULEIDENT>
 ```
 
+### Setting options for a module
+Some modules can be configured by setting options. Refer to the module documentation for available options.
+```
+mokka setopt <WORKSPACENAME> <MODULEIDENT> <OPTION> <NEWVALUE>
+```
+
+
 # More information in the WIKI
 [MOKKA-Wiki](https://github.com/mokny/mokka/wiki)
