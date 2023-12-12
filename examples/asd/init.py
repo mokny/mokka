@@ -11,6 +11,12 @@ mokkalib.init()
 result = mokkalib.request("MODINIT","fgh")
 print(result)
 
+# Setting an option
+mokkalib.setOption('TESTOPTION','MyTestOption')
+
+# Getting an option
+print(mokkalib.getOption('TESTOPTION'))
+
 # Getting the version as array
 version = mokkalib.getVersion()
 print('Version:' + str(version))

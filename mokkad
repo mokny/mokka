@@ -564,7 +564,23 @@ class IPCIncomingConnection(threading.Thread):
                                                 self.send('KILL', False)
                                         elif method == 'GETAPI':
                                             self.send('GETAPI',"http://" + mainconfig['API']['bind']+ ":"+str(mainconfig['API']['port'])+"/api")
+
+                                        elif method == 'GETOPTION':
+                                            if not payload['workspace']:
+                                                payload['workspace'] = v.pids[msg['pid']].workspace
+                                            if not payload['module']:
+                                                payload['module'] = v.pids[msg['pid']].moduleident
                                             
+                                                self.send('GETOPTION', getOption(payload['workspace'], payload['module'], payload['option'], payload['default']))
+
+                                        elif method == 'SETOPTION':
+                                            if not payload['workspace']:
+                                                payload['workspace'] = v.pids[msg['pid']].workspace
+                                            if not payload['module']:
+                                                payload['module'] = v.pids[msg['pid']].moduleident
+                                            setOption(payload['workspace'], payload['module'], payload['option'], payload['value'])
+                                            self.send('SETOPTION', True)
+
                                         elif method == 'GLOBALEVENT':
                                             self.ismodule = True
                                             self.module = payload

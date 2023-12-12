@@ -95,6 +95,14 @@ def getApi():
     res = request('GETAPI', True)
     return res['payload']
 
+def getOption(option, default = None, module = False, workspace = False):
+    res = request('GETOPTION', {'workspace': workspace, 'module': module, 'option': option, 'default': default})
+    return res['payload']
+
+def setOption(option, value, module = False, workspace = False):
+    res = request('SETOPTION', {'workspace': workspace, 'module': module, 'option': option, 'value': value})
+    return res['payload']
+
 def request(method, payload):
     global secret, port, config, initialized
     address = ('127.0.0.1', port)
