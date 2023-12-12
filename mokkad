@@ -283,8 +283,14 @@ class IPCIncomingConnection(threading.Thread):
 
                             # Set Option
                             elif msg[0].lower() == "setopt":
-                                if len(msg) == 5:
-                                    setOption(msg[1].upper(), msg[2].upper(), msg[3].upper(), ' '.join(msg[4:]))
+                                if len(msg) >= 5:
+                                    if is_int(' '.join(msg[4:])):
+                                        value = int(' '.join(msg[4:]))
+                                    elif is_float(' '.join(msg[4:])):
+                                        value = float(' '.join(msg[4:]))
+                                    else:
+                                        value = ' '.join(msg[4:])
+                                    setOption(msg[1].upper(), msg[2].upper(), msg[3].upper(), value)
                                 else:
                                     self.output('Use setopt <WORKSPACE> <MODULE> <OPTION> <VALUE>')
                                 self.disconnect()
@@ -612,6 +618,20 @@ class IPCIncomingConnection(threading.Thread):
     def disconnect(self):
         self.conn.close()
 
+def is_float(string):
+    try:
+        float(string)
+        return True
+    except ValueError:
+        return False
+
+def is_int(string):
+    try:
+        int(string)
+        return True
+    except ValueError:
+        return False
+
 def is_url(url):
     return urlparse(url).scheme in ('http', 'https',)
 
@@ -663,22 +683,19 @@ def setOption(workspace, module, option, value):
     module = module.upper()
     option = option.upper()
     options = loadOptions(workspace)
-    if not workspace in options:
-        options[workspace] = {}
-    if not module in options[workspace]:
-        options[workspace][module] = {}
-    options[workspace][module][option] = value
-    saveOptions(workspace, options[workspace])
+    if not module in options:
+        options[module] = {}
+    options[module][option] = value
+    saveOptions(workspace, options)
 
 def getOption(workspace, module, option, default = None):
     workspace = workspace.upper()
     module = module.upper()
     option = option.upper()
     options = loadOptions(workspace)
-    if workspace in options:
-        if module in options[workspace]:
-            if option in options[workspace][module]:
-                return options[workspace][module][option]
+    if module in options:
+        if option in options[module]:
+            return options[module][option]
     return default
 
 def marketGet():
