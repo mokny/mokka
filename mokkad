@@ -570,7 +570,6 @@ class IPCIncomingConnection(threading.Thread):
                                                 payload['workspace'] = v.pids[msg['pid']].workspace
                                             if not payload['module']:
                                                 payload['module'] = v.pids[msg['pid']].moduleident
-                                            
                                                 self.send('GETOPTION', getOption(payload['workspace'], payload['module'], payload['option'], payload['default']))
 
                                         elif method == 'SETOPTION':
