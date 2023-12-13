@@ -3,3 +3,4 @@
 .ipctoken
 workspaces/*/
 .DS_Store
+**/.DS_Store
