@@ -181,9 +181,12 @@ class IPCServer(threading.Thread):
         address = ('127.0.0.1', self.port)     # family is deduced to be 'AF_INET'
         listener = Listener(address, authkey=str.encode(str(self.secret)))
         while True:
-            con = listener.accept()
-            c = IPCIncomingConnection(con)
-            c.start()
+            try:
+                con = listener.accept()
+                c = IPCIncomingConnection(con)
+                c.start()
+            except:
+                pass
     
 
     

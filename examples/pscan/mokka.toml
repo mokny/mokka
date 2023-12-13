@@ -1,0 +1,13 @@
+[GENERAL]
+title = "PScan Port Scanner"
+ident = "pscan"
+exec = "pscan.py"
+python = "bin/python"
+venv = true
+
+[INSTALL]
+#piplibs = [
+#    'GitPython'
+#]
+
+options.target = "127.0.0.1"
