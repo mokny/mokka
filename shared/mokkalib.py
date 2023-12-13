@@ -103,6 +103,14 @@ def setOption(option, value, module = False, workspace = False):
     res = request('SETOPTION', {'workspace': workspace, 'module': module, 'option': option, 'value': value})
     return res['payload']
 
+def workspaceCreate(workspace):
+    res = request('WORKSPACECREATE', workspace)
+    return res['payload']
+
+def workspaceRemove(workspace):
+    res = request('WORKSPACEREMOVE', workspace)
+    return res['payload']
+
 def request(method, payload):
     global secret, port, config, initialized
     address = ('127.0.0.1', port)

@@ -402,13 +402,8 @@ class IPCIncomingConnection(threading.Thread):
                                     if msg[1].lower() == "create" or msg[1].lower() == "cr":
                                         if len(msg) == 3:
                                             workspace = msg[2].upper()
-                                            if not workspace == '.' and not workspace == '..':
-                                                if not os.path.isdir(pathWorspace(workspace)):
-                                                    self.output("Creating Workspace " + workspace)
-                                                    os.mkdir(pathWorspace(workspace))
-                                                    self.output("Done.")
-                                                else:
-                                                    self.output("Workspace already exists.")
+                                            if workspaceCreate(workspace):
+                                                self.output("Workspace created.")
                                             else:
                                                 self.output("Invalid workspace ident.")
                                         else:
@@ -418,13 +413,8 @@ class IPCIncomingConnection(threading.Thread):
                                     elif msg[1].lower() == "remove" or msg[1].lower() == "rm":
                                         if len(msg) == 3:
                                             workspace = msg[2].upper()
-                                            if not workspace == '.' and not workspace == '..':
-                                                if os.path.isdir(pathWorspace(workspace)):
-                                                    self.output("Removing Workspace " + workspace)
-                                                    shutil.rmtree(pathWorspace(workspace))
-                                                    self.output("Done.")
-                                                else:
-                                                    self.output("Workspace does not exist.")
+                                            if workspaceRemove(workspace):
+                                                self.output("Removed.")
                                             else:
                                                 self.output("Invalid workspace ident.")
                                         else:
@@ -579,6 +569,14 @@ class IPCIncomingConnection(threading.Thread):
                                                 payload['module'] = v.pids[msg['pid']].moduleident
                                             setOption(payload['workspace'], payload['module'], payload['option'], payload['value'])
                                             self.send('SETOPTION', True)
+                                        
+                                        elif method == 'WORKSPACECREATE':
+                                            result = workspaceCreate(payload)
+                                            self.send('WORKSPACECREATE', result)
+
+                                        elif method == 'WORKSPACEREMOVE':
+                                            result = workspaceRemove(payload)
+                                            self.send('WORKSPACEREMOVE', result)
 
                                         elif method == 'GLOBALEVENT':
                                             self.ismodule = True
@@ -649,6 +647,11 @@ def is_int(string):
 
 def is_url(url):
     return urlparse(url).scheme in ('http', 'https',)
+
+def clean(strg):
+    ret = ''.join(letter for letter in strg if letter.isalnum())
+    return ret.replace(' ','')
+
 
 def loadConfig():
     with open(os.path.join(os.path.join(pathMokka(), 'config', 'config.toml')), "r") as f:
@@ -751,6 +754,11 @@ def moduleIsRunning(workspace, ident):
     return False
 
 def moduleInstall(workspace, source, client = False):
+    workspace = clean(workspace.upper())
+    if workspace == '': 
+        if client: client.output('Invalid workspace')
+        return False
+
     if not os.path.isdir(pathWorspace(workspace.upper())):
         if client: client.output("Workspace " + workspace.upper() + ' does not exist')
         return False
@@ -794,6 +802,11 @@ def moduleInstall(workspace, source, client = False):
         else:
             if client: client.output('Source check OK.')
             config = moduleGetConfig(source)
+            config['GENERAL']['ident'] = clean(config['GENERAL']['ident'].upper())
+            if config['GENERAL']['ident'] == '':
+                if client: client.output('Invalid Ident')
+                if tmpdir: shutil.rmtree(tmpdir)
+                return False
             if moduleExists(workspace.upper(), config['GENERAL']['ident']):
                 if client: client.output('Module already exists')
                 if tmpdir: shutil.rmtree(tmpdir)
@@ -822,16 +835,19 @@ def moduleInstall(workspace, source, client = False):
         return False
 
 def moduleExists(workspace, ident):
-    if os.path.isdir(os.path.join(pathWorspace(workspace.upper()),ident.upper())):
+    if os.path.isdir(os.path.join(pathWorspace(clean(workspace.upper())),clean(ident.upper()))):
         return True
     return False
 
 def moduleRemove(workspace, ident):
-    eventTrigger('REMOVEMODULE', False, {'workspace': workspace.upper(), 'module': ident.upper(), 'timestamp': time.time()})
+    if clean(workspace) == '': return False
+    if clean(ident) == '': return False
+
+    eventTrigger('REMOVEMODULE', False, {'workspace': clean(workspace.upper()), 'module': clean(ident.upper()), 'timestamp': time.time()})
 
     moduleKill(workspace, ident)
-    if os.path.isdir(os.path.join(pathWorspace(workspace.upper()),ident.upper())):
-        shutil.rmtree(os.path.join(pathWorspace(workspace.upper()),ident.upper()))
+    if os.path.isdir(os.path.join(pathWorspace(clean(workspace.upper())),clean(ident.upper()))):
+        shutil.rmtree(os.path.join(pathWorspace(clean(workspace.upper())),clean(ident.upper())))
         return True
     return False
 
@@ -887,6 +903,9 @@ def moduleHasErrors(source):
                 return "Invalid mokka.toml"
 
             if configok:
+                if config['GENERAL']['ident'].upper() != clean(config['GENERAL']['ident'].upper()):
+                    return "Invalid Ident provided."
+                
                 if not os.path.isfile(os.path.join(os.path.join(source, config['GENERAL']['exec']))):
                     return "Exec file is missing."
                 return False
@@ -895,6 +914,24 @@ def moduleHasErrors(source):
             return "Invalid mokka.toml" + os.path.join(os.path.join(source, 'mokka.toml')) + str(err)
     else:
         return "mokka.toml missing"
+    return False
+
+def workspaceCreate(workspace):
+    workspace = clean(workspace.upper())
+    if workspace == '': return False
+    if not workspace == '.' and not workspace == '..':
+        if not os.path.isdir(pathWorspace(workspace)):
+            os.mkdir(pathWorspace(workspace))
+            return True
+    return False
+
+def workspaceRemove(workspace):
+    workspace = clean(workspace.upper())
+    if workspace == '': return False
+    if not workspace == '.' and not workspace == '..':
+        if os.path.isdir(pathWorspace(workspace)):
+            shutil.rmtree(pathWorspace(workspace))
+            return True
     return False
 
 def eventTrigger(method, module, payload):

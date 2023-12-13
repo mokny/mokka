@@ -27,6 +27,12 @@ def eventHandler(msg):
 
 mokkalib.setEventHandler(eventHandler)
 
+wsresult = mokkalib.workspaceCreate('asdws')
+print("WS Create: " + str(wsresult))
+
+wsresult = mokkalib.workspaceRemove('asdws')
+print("WS Remove: " + str(wsresult))
+
 # Triggering a global event
 mokkalib.triggerGlobalEvent('Moinsen')
 
