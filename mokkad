@@ -752,9 +752,9 @@ def marketSearch(term):
     market = marketGet()
     results = []
     for resmodule in market['MODULES']:
-        if term in resmodule['ident']: results.append(resmodule)
-        elif term in resmodule['title']: results.append(resmodule)
-        elif term in resmodule['description']: results.append(resmodule)
+        if term.lower() in resmodule['ident'].lower(): results.append(resmodule)
+        elif term.lower() in resmodule['title'].lower(): results.append(resmodule)
+        elif term.lower() in resmodule['description'].lower(): results.append(resmodule)
     return results
 
 def marketGetIdent(ident):
@@ -884,8 +884,10 @@ def moduleInstall(update, workspace, source, client = False):
                     for option in config['INSTALL']['options']:
                         if client: client.output('Setting option '+option+' = '+str(config['INSTALL']['options'][option]))
                         setOption(workspace.upper(), config['GENERAL']['ident'].upper(),option,config['INSTALL']['options'][option])
-            
-            if client: client.output('Module installed')
+            if update:
+                if client: client.output('-> Module updated.')
+            else:
+                if client: client.output('-> Module installed')
             return True
     else:
         if client: client.output(source + ' not found.')
