@@ -51,12 +51,16 @@ Let's assume you want to install and run the Port-Scanner module "pscan", and yo
 ```
 mokka workspace create test
 mokka install test pscan
-mokka setopt test pscan target localhost
 mokka run test pscan
 ```
 Now the module pscan is running and checking the open ports on your system. To view the output:
 ```
 mokka log test pscan
+```
+
+Side note: The pscan module has the target-option, so that you can change the scanning target. To change that option you might use this - This is optional:
+```
+mokka setopt test pscan target exampledomainorip.tld
 ```
 
 To abort the scan:
