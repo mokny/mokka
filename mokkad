@@ -666,6 +666,12 @@ def clean(strg):
     ret = ''.join(letter for letter in strg if letter.isalnum())
     return ret.replace(' ','')
 
+def pathValid(p):
+    originalpath = os.path.abspath(pathBase())
+    abspath = os.path.abspath(p)
+    if not abspath.startswith(originalpath):
+        return False
+    return True
 
 def loadConfig():
     with open(os.path.join(os.path.join(pathMokka(), 'config', 'config.toml')), "r") as f:
@@ -769,6 +775,10 @@ def moduleIsRunning(workspace, ident):
 
 def moduleInstall(workspace, source, client = False):
     workspace = clean(workspace.upper())
+    if not pathValid(pathWorspace(workspace.upper())):
+        if client: client.output('Invalid workspace path')
+        return False
+    
     if workspace == '': 
         if client: client.output('Invalid workspace')
         return False
@@ -825,6 +835,11 @@ def moduleInstall(workspace, source, client = False):
                 if client: client.output('Module already exists')
                 if tmpdir: shutil.rmtree(tmpdir)
                 return False
+            
+            if not pathValid(os.path.join(pathWorspace(workspace.upper()), config['GENERAL']['ident'].upper())):
+                if client: client.output('Invalid path')
+                return False
+            
             shutil.copytree(source, os.path.join(pathWorspace(workspace.upper()), config['GENERAL']['ident'].upper()))
             shutil.copy(os.path.join(pathMokka(),'shared','mokkalib.py'), os.path.join(pathWorspace(workspace.upper()), config['GENERAL']['ident'].upper(), 'mokkalib.py'))
             if client: client.output('Creating virtual environment...')
@@ -857,8 +872,11 @@ def moduleRemove(workspace, ident):
     if clean(workspace) == '': return False
     if clean(ident) == '': return False
 
-    eventTrigger('REMOVEMODULE', False, {'workspace': clean(workspace.upper()), 'module': clean(ident.upper()), 'timestamp': time.time()})
+    if not pathValid(os.path.join(pathWorspace(clean(workspace.upper())),clean(ident.upper()))):
+        return False
 
+    eventTrigger('REMOVEMODULE', False, {'workspace': clean(workspace.upper()), 'module': clean(ident.upper()), 'timestamp': time.time()})
+    
     moduleKill(workspace, ident)
     if os.path.isdir(os.path.join(pathWorspace(clean(workspace.upper())),clean(ident.upper()))):
         shutil.rmtree(os.path.join(pathWorspace(clean(workspace.upper())),clean(ident.upper())))
@@ -867,6 +885,9 @@ def moduleRemove(workspace, ident):
 
 def moduleRun(workspace, ident):
     moduleKill(workspace, ident)
+    if not pathValid(os.path.join(pathWorspace(workspace.upper()),ident.upper())):
+        return False
+
     if os.path.isdir(os.path.join(pathWorspace(workspace.upper()),ident.upper())):
         Module(workspace.upper(), ident.upper()).start()
         eventTrigger('RUN', False, {'workspace': workspace.upper(), 'module': ident.upper(), 'timestamp': time.time()})
@@ -942,6 +963,10 @@ def moduleHasErrors(source):
 def workspaceCreate(workspace):
     workspace = clean(workspace.upper())
     if workspace == '': return False
+
+    if not pathValid(pathWorspace(workspace)):
+        return False
+    
     if not workspace == '.' and not workspace == '..':
         if not os.path.isdir(pathWorspace(workspace)):
             os.mkdir(pathWorspace(workspace))
@@ -951,6 +976,10 @@ def workspaceCreate(workspace):
 def workspaceRemove(workspace):
     workspace = clean(workspace.upper())
     if workspace == '': return False
+
+    if not pathValid(pathWorspace(workspace)):
+        return False
+
     if not workspace == '.' and not workspace == '..':
         if os.path.isdir(pathWorspace(workspace)):
             moduleKillWorkspace(workspace)
