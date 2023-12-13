@@ -42,6 +42,7 @@ v.pids = {}
 v.eventreceivers = {}
 v.apiserver = False
 v.options = {}
+v.logs = {}
 
 class Module(threading.Thread):
     def __init__(self, workspace, ident):  
@@ -59,6 +60,9 @@ class Module(threading.Thread):
 
     def kill(self):
         self.killflag = True
+        self.output.append('-- KILLED --')
+        v.logs[self.workspace + '/' + self.moduleident] = self.output
+
         try:
             self.process.kill()
         except:
@@ -103,6 +107,8 @@ class Module(threading.Thread):
                 del v.modules[self.workspace + '/' + self.moduleident]
             if 'p'+str(self.pid) in v.pids:
                 del v.pids['p'+str(self.pid)] 
+            
+            v.logs[self.workspace + '/' + self.moduleident] = self.output
 
 
 class APIServer(BaseHTTPRequestHandler):
@@ -932,6 +938,9 @@ def moduleGetLog(workspace, ident):
     mident = workspace.upper() + '/' + ident.upper()
     if mident in v.modules:
         return v.modules[mident].output
+    elif mident in v.logs:
+        return v.logs[mident]
+    return []
 
 def moduleKill(workspace, ident):
     mident = workspace.upper() + '/' + ident.upper()
