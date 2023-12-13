@@ -43,7 +43,7 @@ mokka setopt <WORKSPACENAME> <MODULEIDENT> <OPTION> <NEWVALUE>
 ### Updating Modules
 Especially during developing, updating a mokka module is often helpful. Note: Only Source-Files and Options are updated. If you made changes to dependencies / pip libraries, you need a full reinstall.
 ```
-mokka update <WORKSPACENAME> <MODULEPATH>
+mokka update <WORKSPACENAME> <SOURCE>
 ```
 
 # More information in the WIKI
