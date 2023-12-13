@@ -47,7 +47,7 @@ mokka update <WORKSPACENAME> <SOURCE>
 ```
 
 ## Examples
-Let's assume you want to install and run the Port-Scanner module "pscan", and you have a fresh mokka installation ready.
+Let's assume you want to install and run the Port-Scanner module "pscan", and you have a fresh mokka installation ready. We also assume that you want to name your workspace `test`
 ```
 mokka workspace create test
 mokka install test pscan
