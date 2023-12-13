@@ -847,10 +847,19 @@ def moduleInstall(update, workspace, source, client = False):
                 if tmpdir: shutil.rmtree(tmpdir)
                 return False
             
+            if not moduleExists(workspace.upper(), config['GENERAL']['ident']) and update:
+                if client: client.output('Module can not be updated because the ident does not exist.')
+                if tmpdir: shutil.rmtree(tmpdir)
+                return False
+            
             if not pathValid(os.path.join(pathWorspace(workspace.upper()), config['GENERAL']['ident'].upper())):
                 if client: client.output('Invalid path')
                 return False
             
+            if update:
+                if client: client.output('Killing previous instances...')
+                moduleKill(workspace.upper(), config['GENERAL']['ident'].upper())
+
             if client: client.output('Copying Files...')            
             shutil.copytree(source, os.path.join(pathWorspace(workspace.upper()), config['GENERAL']['ident'].upper()),dirs_exist_ok=True)
             shutil.copy(os.path.join(pathMokka(),'shared','mokkalib.py'), os.path.join(pathWorspace(workspace.upper()), config['GENERAL']['ident'].upper(), 'mokkalib.py'))
