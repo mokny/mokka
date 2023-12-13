@@ -2,3 +2,4 @@
 .pid
 .ipctoken
 workspaces/*/
+.DS_Store
