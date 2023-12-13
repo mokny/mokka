@@ -60,7 +60,7 @@ mokka log test pscan
 
 Side note: The pscan module has the target-option, so that you can change the scanning target. To change that option you might use this - This is optional:
 ```
-mokka setopt test pscan target exampledomainorip.tld
+mokka setopt test pscan target 198.168.0.200
 ```
 
 To abort the scan:
