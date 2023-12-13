@@ -232,6 +232,7 @@ class IPCIncomingConnection(threading.Thread):
                                 self.output('WORKSPACE LIST                     List available workspaces')
                                 self.output('MODULES <WS>                       List installed modules in workspace')
                                 self.output('INSTALL <WS> <PATH/URL>            Install module from local path')
+                                self.output('UPDATE <WS> <PATH/URL>             Updates a module')
                                 self.output('RUN <WS> <IDENT>                   Run module')
                                 self.output('REMOVE <WS> <IDENT>                Remove module')
                                 self.output('LOG <WS> <IDENT>                   Get module logs')
@@ -256,7 +257,13 @@ class IPCIncomingConnection(threading.Thread):
                             # Install Module
                             elif msg[0].lower() == "install":
                                 if len(msg) == 3:
-                                    moduleInstall(msg[1], msg[2], self)
+                                    moduleInstall(False, msg[1], msg[2], self)
+                                self.disconnect()
+                            
+                            # Install Module
+                            elif msg[0].lower() == "update":
+                                if len(msg) == 3:
+                                    moduleInstall(True, msg[1], msg[2], self)
                                 self.disconnect()
                             
                             # Kill Module
@@ -540,7 +547,7 @@ class IPCIncomingConnection(threading.Thread):
                                         elif method == 'INSTALL':
                                             if not payload['workspace']:
                                                 payload['workspace'] = v.pids[msg['pid']].workspace
-                                            if moduleInstall(payload['workspace'], payload['module']):
+                                            if moduleInstall(False, payload['workspace'], payload['module']):
                                                 self.send('INSTALL', True)
                                             else:
                                                 self.send('INSTALL', False)
@@ -773,7 +780,7 @@ def moduleIsRunning(workspace, ident):
         return True
     return False
 
-def moduleInstall(workspace, source, client = False):
+def moduleInstall(update, workspace, source, client = False):
     workspace = clean(workspace.upper())
     if not pathValid(pathWorspace(workspace.upper())):
         if client: client.output('Invalid workspace path')
@@ -835,7 +842,7 @@ def moduleInstall(workspace, source, client = False):
                 if client: client.output('Invalid Ident')
                 if tmpdir: shutil.rmtree(tmpdir)
                 return False
-            if moduleExists(workspace.upper(), config['GENERAL']['ident']):
+            if moduleExists(workspace.upper(), config['GENERAL']['ident']) and not update:
                 if client: client.output('Module already exists')
                 if tmpdir: shutil.rmtree(tmpdir)
                 return False
@@ -844,18 +851,27 @@ def moduleInstall(workspace, source, client = False):
                 if client: client.output('Invalid path')
                 return False
             
-            shutil.copytree(source, os.path.join(pathWorspace(workspace.upper()), config['GENERAL']['ident'].upper()))
+            if client: client.output('Copying Files...')            
+            shutil.copytree(source, os.path.join(pathWorspace(workspace.upper()), config['GENERAL']['ident'].upper()),dirs_exist_ok=True)
             shutil.copy(os.path.join(pathMokka(),'shared','mokkalib.py'), os.path.join(pathWorspace(workspace.upper()), config['GENERAL']['ident'].upper(), 'mokkalib.py'))
-            if client: client.output('Creating virtual environment...')
-            venv.create(os.path.join(pathWorspace(workspace.upper()), config['GENERAL']['ident'].upper()))
-            if client: client.output('Installing PIP...')
-            subprocess.check_call([os.path.join(pathWorspace(workspace.upper()), config['GENERAL']['ident'].upper(),'bin','python'), '-m' , 'ensurepip', '--default-pip'])            
+            if client: client.output('Done.')            
+            
+            if not update:
+                if client: client.output('Creating virtual environment...')
+                venv.create(os.path.join(pathWorspace(workspace.upper()), config['GENERAL']['ident'].upper()))
+            
+                if client: client.output('Installing PIP...')
+                subprocess.check_call([os.path.join(pathWorspace(workspace.upper()), config['GENERAL']['ident'].upper(),'bin','python'), '-m' , 'ensurepip', '--default-pip'])            
+
             if 'INSTALL' in config:
-                if 'piplibs' in config['INSTALL']:
-                    for piplib in config['INSTALL']['piplibs']:
-                        if client: client.output('Installing '+piplib+'...')
-                        subprocess.check_call([os.path.join(pathWorspace(workspace.upper()), config['GENERAL']['ident'].upper(),'bin','python'), "-m", "pip", "install", piplib])
+                if not update:
+                    if 'piplibs' in config['INSTALL']:
+                        if client: client.output('Installing Dependencies...')            
+                        for piplib in config['INSTALL']['piplibs']:
+                            if client: client.output('Installing '+piplib+'...')
+                            subprocess.check_call([os.path.join(pathWorspace(workspace.upper()), config['GENERAL']['ident'].upper(),'bin','python'), "-m", "pip", "install", piplib])
                 if 'options' in config['INSTALL']:
+                    if client: client.output('Writing Options...')            
                     for option in config['INSTALL']['options']:
                         if client: client.output('Setting option '+option+' = '+str(config['INSTALL']['options'][option]))
                         setOption(workspace.upper(), config['GENERAL']['ident'].upper(),option,config['INSTALL']['options'][option])

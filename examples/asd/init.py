@@ -3,7 +3,7 @@ import os
 import sys
 import uuid
 import mokkalib
-
+print("YOLO")
 # This has to be done in your main file
 mokkalib.init()
 
