@@ -91,6 +91,10 @@ def kill(module, workspace = False):
     res = request('KILL', {'workspace': workspace, 'module': module})
     return res['payload']
 
+def getLog(module, workspace = False):
+    res = request('GETLOG', {'workspace': workspace, 'module': module})
+    return res['payload']
+
 def getApi():
     res = request('GETAPI', True)
     return res['payload']

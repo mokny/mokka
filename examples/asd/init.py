@@ -33,6 +33,7 @@ print("WS Create: " + str(wsresult))
 wsresult = mokkalib.workspaceRemove('asdws')
 print("WS Remove: " + str(wsresult))
 
+
 # Triggering a global event
 mokkalib.triggerGlobalEvent('Moinsen')
 
@@ -60,6 +61,11 @@ print("Trying to run bla")
 # Run another module. Param2 can be a workspace. if not defined, own workspace will be used
 print(mokkalib.runModule('BLA'))
 
+time.sleep(4)
+print("Bla-Logs")
+logs = mokkalib.getLog('BLA')
+print(logs)
+time.sleep(1)
 
 print("Removing BLA")
 # Removing another module. Param2 can be a workspace. if not defined, own workspace will be used
