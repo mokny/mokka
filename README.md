@@ -46,5 +46,30 @@ Especially during developing, updating a mokka module is often helpful. Note: On
 mokka update <WORKSPACENAME> <SOURCE>
 ```
 
+## Examples
+Let's assume you want to install and run the Port-Scanner module "pscan", and you have a fresh mokka installation ready.
+```
+mokka workspace create test
+mokka install test pscan
+mokka setopt test pscan target localhost
+mokka run test pscan
+```
+Now the module pscan is running and checking the open ports on your system. To view the output:
+```
+mokka log test pscan
+```
+
+To abort the scan:
+```
+mokka kill test pscan
+```
+
+To remove the module:
+```
+mokka remove test pscan
+```
+
+Easy. Right?
+
 # More information in the WIKI
 [MOKKA-Wiki](https://github.com/mokny/mokka/wiki)
