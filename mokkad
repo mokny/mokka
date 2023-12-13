@@ -794,6 +794,10 @@ def moduleInstall(workspace, source, client = False):
         if client: client.output('Installing from Marketplace..')
         source = marketResult['path']
 
+    if os.path.isdir(os.path.join(pathMokka(), 'examples', source)):
+        if client: client.output('Installing from Examples..')
+        source = os.path.join(pathMokka(), 'examples', source)
+
     if is_url(source):
         if not str(source).lower().endswith('.zip'):
             if client: client.output('Only ZIP files supported')
