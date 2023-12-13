@@ -237,6 +237,7 @@ class IPCIncomingConnection(threading.Thread):
                                 self.output('LOG <WS> <IDENT>                   Get module logs')
                                 self.output('KILL <WS> <IDENT>                  Kill a module')
                                 self.output('KILLALL                            Kill all running modules')
+                                self.output('KILLWS <WS>                        Kill all running modules in a workspace')
                                 self.output('PS                                 Running modules')
                                 self.output('SEARCH                             Search on marketplace')
                                 self.output('EVENT                              Trigger event')
@@ -335,6 +336,13 @@ class IPCIncomingConnection(threading.Thread):
                             elif msg[0].lower() == "killall":
                                 moduleKillAll()
                                 self.disconnect()
+
+                            # Kill Workspace
+                            elif msg[0].lower() == "killws":
+                                if len(msg) == 2:
+                                    moduleKillWorkspace(msg[1])
+                                self.disconnect()
+
 
                             # Get module logs
                             elif msg[0].lower() == "search":
@@ -876,6 +884,15 @@ def moduleKill(workspace, ident):
         return True
     return False
 
+def moduleKillWorkspace(workspace):
+    for mident in v.modules:
+        if v.modules[mident].workspace.upper() == workspace.upper():
+            eventTrigger('KILLWORKSPACE', False, {'workspace': workspace.upper(), 'timestamp': time.time()})
+            try:
+                v.modules[mident].kill()
+            except Exception as err:
+                pass
+    return True
 
 def moduleKillAll():
     for ident in v.modules:
@@ -930,6 +947,7 @@ def workspaceRemove(workspace):
     if workspace == '': return False
     if not workspace == '.' and not workspace == '..':
         if os.path.isdir(pathWorspace(workspace)):
+            moduleKillWorkspace(workspace)
             shutil.rmtree(pathWorspace(workspace))
             return True
     return False
