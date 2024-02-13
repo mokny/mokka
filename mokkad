@@ -66,9 +66,11 @@ class Module(threading.Thread):
         try:
             #self.process.kill()
             self.process.kill(os.getpgid(self.pid), signal.SIGTERM)
+            self.output.append('-- KILLED BY SIGTERM --')
         except:
             try:
                 self.process.kill()
+                self.output.append('-- KILLED BY SIGKILL --')
             except:
                 pass
 
