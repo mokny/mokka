@@ -64,9 +64,13 @@ class Module(threading.Thread):
         v.logs[self.workspace + '/' + self.moduleident] = self.output
 
         try:
-            self.process.kill()
+            #self.process.kill()
+            self.process.kill(os.getpgid(self.pid), signal.SIGTERM)
         except:
-            pass
+            try:
+                self.process.kill()
+            except:
+                pass
 
     def run(self):
         if not self.killflag:
