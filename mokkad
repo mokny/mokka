@@ -64,11 +64,9 @@ class Module(threading.Thread):
         v.logs[self.workspace + '/' + self.moduleident] = self.output
 
         try:
-            process = psutil.Process(self.pid)
-            for proc in process.children(recursive=True):
-                proc.kill()
-            process.kill()            
+            os.killpg(os.getpgid(self.pid), signal.SIGTERM)        
             self.output.append('-- KILLED BY SIGTERM --')
+            
             try:
                 self.process.kill()
             except:
