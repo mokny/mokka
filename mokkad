@@ -65,7 +65,11 @@ class Module(threading.Thread):
 
         try:
             #self.process.kill()
-            os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
+            process = psutil.Process(self.process.pid)
+            for proc in process.children(recursive=True):
+                proc.kill()
+            process.kill()            
+            #os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
             self.output.append('-- KILLED BY SIGTERM --')
         except:
             try:
