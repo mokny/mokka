@@ -64,20 +64,10 @@ class Module(threading.Thread):
         v.logs[self.workspace + '/' + self.moduleident] = self.output
 
         try:
-            os.killpg(os.getpgid(self.pid), signal.SIGTERM)        
-            self.output.append('-- KILLED BY SIGTERM --')
-            
-            try:
-                self.process.kill()
-            except:
-                pass
+            self.process.kill()
         except:
-            try:
-                self.process.kill()
-                self.output.append('-- KILLED BY SIGKILL --')
-            except:
-                pass
-
+            pass
+        
     def run(self):
         if not self.killflag:
             cmd = 'bin/python ' + self.config['GENERAL']['exec']
