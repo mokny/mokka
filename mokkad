@@ -66,12 +66,14 @@ class Module(threading.Thread):
             self.process.terminate()
             self.output.append('-- TERMINATED --')
         except:
+            self.output.append('-- TERMINATED FAIL --')
             pass
         time.sleep(1)
         try:
             self.process.kill()
             self.output.append('-- HARDKILL --')
         except:
+            self.output.append('-- HARDKILL FAIL --')
             pass
         
     def run(self):
