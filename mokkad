@@ -67,16 +67,20 @@ class Module(threading.Thread):
             self.output.append('-- TERMINATED --')
         except:
             self.output.append('-- TERMINATED FAIL --')
+        
+        killtimeout = 10
+        while self.process.poll() is None:
+            time.sleep(0.1)
+            killtimeout -= 0.1
+            if killtimeout == 0:
+                try:
+                    self.process.kill()
+                    self.output.append('-- HARDKILL --')
+                except:
+                    self.output.append('-- HARDKILL FAIL --')
+                    pass
+                break
 
-        time.sleep(0.2)
-        
-        try:
-            self.process.kill()
-            self.output.append('-- HARDKILL --')
-        except:
-            self.output.append('-- HARDKILL FAIL --')
-            pass
-        
     def run(self):
         if not self.killflag:
             cmd = 'bin/python ' + self.config['GENERAL']['exec']
