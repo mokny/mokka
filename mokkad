@@ -62,9 +62,15 @@ class Module(threading.Thread):
         self.killflag = True
         self.output.append('-- KILLED --')
         v.logs[self.workspace + '/' + self.moduleident] = self.output
-
+        try:
+            self.process.terminate()
+            self.output.append('-- TERMINATED --')
+        except:
+            pass
+        time.sleep(1)
         try:
             self.process.kill()
+            self.output.append('-- HARDKILL --')
         except:
             pass
         
