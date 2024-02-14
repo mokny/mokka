@@ -67,8 +67,9 @@ class Module(threading.Thread):
             self.output.append('-- TERMINATED --')
         except:
             self.output.append('-- TERMINATED FAIL --')
-            pass
+
         time.sleep(0.2)
+        
         try:
             self.process.kill()
             self.output.append('-- HARDKILL --')
