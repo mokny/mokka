@@ -298,8 +298,11 @@ class IPCIncomingConnection(threading.Thread):
                             
                             # Run Module
                             elif msg[0].lower() == "run":
+                                params = ''
+                                if len(msg) > 3:
+                                    params = ' '.join(msg[3:])
                                 if len(msg) == 3:
-                                    if moduleRun(msg[1], msg[2]):
+                                    if moduleRun(msg[1], msg[2], params):
                                         self.output('Running')
                                     else:
                                         self.output('Not a module')
@@ -538,7 +541,7 @@ class IPCIncomingConnection(threading.Thread):
                                         elif method == 'RUN':
                                             if not payload['workspace']:
                                                 payload['workspace'] = v.pids[msg['pid']].workspace
-                                            if moduleRun(payload['workspace'], payload['module']):
+                                            if moduleRun(payload['workspace'], payload['module'],''):
                                                 self.send('RUN', True)
                                             else:
                                                 self.send('RUN', False)
@@ -932,7 +935,7 @@ def moduleRemove(workspace, ident):
         return True
     return False
 
-def moduleRun(workspace, ident):
+def moduleRun(workspace, ident, params = ''):
     moduleKill(workspace, ident)
     if not pathValid(os.path.join(pathWorspace(workspace.upper()),ident.upper())):
         return False
