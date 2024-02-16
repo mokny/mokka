@@ -306,7 +306,7 @@ class IPCIncomingConnection(threading.Thread):
                                     params = ' '.join(msg[3:])
                                 if len(msg) == 3:
                                     if moduleRun(msg[1], msg[2], params):
-                                        self.output('Running')
+                                        self.output('Running with ' + params)
                                     else:
                                         self.output('Not a module')
                                 else:
