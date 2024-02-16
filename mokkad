@@ -45,10 +45,11 @@ v.options = {}
 v.logs = {}
 
 class Module(threading.Thread):
-    def __init__(self, workspace, ident):  
+    def __init__(self, workspace, ident, params):  
         threading.Thread.__init__(self)
         self.workspace = workspace.upper()
         self.moduleident = ident.upper()
+        self.params = params
         self.output = []
         self.ps = False
         self.process = None
@@ -79,7 +80,9 @@ class Module(threading.Thread):
         
     def run(self):
         if not self.killflag:
-            cmd = 'bin/python ' + self.config['GENERAL']['exec']
+            if self.params != '':
+                self.params = ' ' + self.params
+            cmd = 'bin/python ' + self.config['GENERAL']['exec'] + self.params
             value = 'ping -c 10 localhost' 
             value = cmd
             try:
@@ -941,7 +944,7 @@ def moduleRun(workspace, ident, params = ''):
         return False
 
     if os.path.isdir(os.path.join(pathWorspace(workspace.upper()),ident.upper())):
-        Module(workspace.upper(), ident.upper()).start()
+        Module(workspace.upper(), ident.upper(), params).start()
         eventTrigger('RUN', False, {'workspace': workspace.upper(), 'module': ident.upper(), 'timestamp': time.time()})
         return True
     return False
