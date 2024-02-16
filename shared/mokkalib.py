@@ -133,6 +133,10 @@ def setEventHandler(evh):
     global client
     client.setEventHandler(evh)
 
+def exit():
+    sys.exit()
+    os.exit()
+
 def init():
     global secret, port, config, initialized, client
     if not initialized:
