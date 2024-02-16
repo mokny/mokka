@@ -939,7 +939,7 @@ def moduleRemove(workspace, ident):
     return False
 
 def moduleRun(workspace, ident, params = ''):
-    moduleKill(workspace, ident)
+    moduleKill(workspace.upper(),ident.upper())
     if not pathValid(os.path.join(pathWorspace(workspace.upper()),ident.upper())):
         return False
 
